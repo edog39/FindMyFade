@@ -70,6 +70,52 @@ export default function LoginPage() {
     }
   }
 
+  const handleDemoLogin = (type: 'client' | 'barber') => {
+    // Create a demo profile
+    const demoProfile = type === 'client' ? {
+      firstName: 'Demo',
+      lastName: 'Client',
+      email: 'demo.client@findmyfade.com',
+      phone: '555-DEMO-001',
+      password: 'demo123',
+      userType: 'client',
+      accountType: 'client',
+      gender: 'male',
+      createdAt: new Date().toISOString()
+    } : {
+      firstName: 'Demo',
+      lastName: 'Barber',
+      email: 'demo.barber@findmyfade.com',
+      phone: '555-DEMO-002',
+      password: 'demo123',
+      userType: 'barber',
+      accountType: 'barber',
+      shopName: 'Demo Barber Shop',
+      experience: '5+ years',
+      specialties: ['Fades', 'Tapers', 'Line-ups'],
+      verified: true,
+      createdAt: new Date().toISOString()
+    }
+    
+    // Save demo profile
+    localStorage.setItem('userProfile', JSON.stringify(demoProfile))
+    localStorage.setItem('isLoggedIn', 'true')
+    localStorage.setItem('userType', type)
+    localStorage.setItem('hasVisitedBefore', 'true')
+    
+    // Initialize wallet for demo client
+    if (type === 'client') {
+      const walletData = {
+        balance: 100.00,
+        points: 250
+      }
+      localStorage.setItem('walletData', JSON.stringify(walletData))
+    }
+    
+    alert(`🎉 Logged in as Demo ${type === 'client' ? 'Client' : 'Barber'}!`)
+    router.push('/')
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-950 via-primary-900 to-primary-800 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -225,15 +271,24 @@ export default function LoginPage() {
         <div className="mt-6">
           <p className="text-primary-400 text-sm text-center mb-4">Quick Access</p>
           <div className="grid grid-cols-2 gap-3">
-            <button className="flex items-center justify-center space-x-2 bg-primary-800/50 border border-primary-600 px-4 py-3 rounded-lg hover:bg-primary-700/50 transition-colors">
-              <User size={16} className="text-accent-500" />
-              <span className="text-white text-sm">Demo Client</span>
+            <button 
+              onClick={() => handleDemoLogin('client')}
+              className="flex items-center justify-center space-x-2 bg-primary-800/50 border border-primary-600 px-4 py-3 rounded-lg hover:bg-primary-700/50 hover:border-accent-500 transition-all group"
+            >
+              <User size={16} className="text-accent-500 group-hover:scale-110 transition-transform" />
+              <span className="text-white text-sm font-medium">Demo Client</span>
             </button>
-            <button className="flex items-center justify-center space-x-2 bg-primary-800/50 border border-primary-600 px-4 py-3 rounded-lg hover:bg-primary-700/50 transition-colors">
-              <Scissors size={16} className="text-accent-500" />
-              <span className="text-white text-sm">Demo Barber</span>
+            <button 
+              onClick={() => handleDemoLogin('barber')}
+              className="flex items-center justify-center space-x-2 bg-primary-800/50 border border-primary-600 px-4 py-3 rounded-lg hover:bg-primary-700/50 hover:border-accent-500 transition-all group"
+            >
+              <Scissors size={16} className="text-accent-500 group-hover:scale-110 transition-transform" />
+              <span className="text-white text-sm font-medium">Demo Barber</span>
             </button>
           </div>
+          <p className="text-primary-500 text-xs text-center mt-2">
+            💡 Try the app instantly with pre-loaded demo accounts
+          </p>
         </div>
 
         {/* Sign Up Link */}
