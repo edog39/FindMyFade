@@ -127,6 +127,8 @@ export default function DiscoverPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const userCreatedBarbers = JSON.parse(localStorage.getItem('userCreatedBarbers') || '[]')
+      console.log('🔍 Loading user-created barbers:', userCreatedBarbers)
+      
       const formattedUserBarbers = userCreatedBarbers.map((barber: any) => ({
         id: barber.id,
         name: barber.shopName,
@@ -145,8 +147,12 @@ export default function DiscoverPage() {
         state: barber.state
       }))
       
+      console.log('🔍 Formatted user barbers:', formattedUserBarbers)
+      
       // Combine user-created barbers with default ones (user barbers first)
       const combined = [...formattedUserBarbers, ...allBarbers]
+      console.log('🔍 Combined barbers count:', combined.length, 'User:', formattedUserBarbers.length, 'Default:', allBarbers.length)
+      
       setCombinedBarbers(combined)
       setDisplayBarbers(combined)
       
@@ -450,6 +456,53 @@ export default function DiscoverPage() {
               }
               return null
             })()}
+            {/* Debug and refresh buttons */}
+            {typeof window !== 'undefined' && (
+              <div className="flex gap-3 mt-2">
+                <button
+                  onClick={() => {
+                    const barbers = JSON.parse(localStorage.getItem('userCreatedBarbers') || '[]')
+                    console.log('📊 User Created Barbers:', barbers)
+                    console.log('📊 Combined Barbers:', combinedBarbers.slice(0, 5))
+                    console.log('📊 Display Barbers:', displayBarbers.slice(0, 5))
+                    alert(`Found ${barbers.length} user-created barbers in localStorage. Check console for details.`)
+                  }}
+                  className="text-xs text-primary-400 hover:text-accent-400 underline"
+                >
+                  🔍 Debug: Check User-Created Barbers
+                </button>
+                <button
+                  onClick={() => {
+                    // Force reload barbers from localStorage
+                    const userCreatedBarbers = JSON.parse(localStorage.getItem('userCreatedBarbers') || '[]')
+                    const formattedUserBarbers = userCreatedBarbers.map((barber: any) => ({
+                      id: barber.id,
+                      name: barber.shopName,
+                      rating: barber.rating,
+                      reviews: barber.reviews,
+                      distance: barber.distance,
+                      image: barber.image,
+                      specialties: barber.specialties,
+                      price: barber.price,
+                      nextAvailable: barber.nextAvailable || 'Available',
+                      address: barber.address,
+                      phone: barber.phone,
+                      verified: barber.verified,
+                      promoted: barber.promoted,
+                      city: barber.city,
+                      state: barber.state
+                    }))
+                    const combined = [...formattedUserBarbers, ...allBarbers]
+                    setCombinedBarbers(combined)
+                    setDisplayBarbers(combined)
+                    alert(`Refreshed! Loaded ${userCreatedBarbers.length} user-created barbers.`)
+                  }}
+                  className="text-xs text-accent-400 hover:text-accent-300 underline font-medium"
+                >
+                  🔄 Refresh Barbers List
+                </button>
+              </div>
+            )}
           </div>
           <div className="flex items-center space-x-2 text-primary-300">
             <Navigation size={16} />
