@@ -347,17 +347,33 @@ export default function Home() {
       <section className="section-padding">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
-            <div className="animate-fade-in">
+            <div className="animate-fade-in space-y-6">
               <h1 className="font-display font-bold text-5xl md:text-7xl lg:text-8xl text-white mb-8 leading-tight">
                 Find Your
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent-400 via-accent-500 to-accent-600 animate-gradient"> Perfect</span>
+                <span className="relative inline-block mx-3">
+                  <span className="gradient-text animate-pulse-slow"> Perfect</span>
+                  <span className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-accent-400 via-accent-500 to-accent-600 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform"></span>
+                </span>
                 <br />
-                <span className="inline-block mt-2">Fade</span>
+                <span className="inline-block mt-2 relative">
+                  Fade
+                  <span className="absolute -inset-1 bg-accent-500/20 blur-2xl rounded-full"></span>
+                </span>
               </h1>
-              <p className="text-xl md:text-2xl text-primary-300 mb-10 max-w-3xl mx-auto leading-relaxed font-light">
+              <p className="text-xl md:text-2xl text-primary-300/90 mb-10 max-w-3xl mx-auto leading-relaxed animate-slide-up">
                 Discover top-rated barbers near you, get AI-powered hairstyle recommendations, 
                 and book your next cut with ease.
               </p>
+              <div className="flex justify-center space-x-2 animate-slide-up">
+                <div className="flex items-center space-x-2 bg-primary-800/30 backdrop-blur-sm px-4 py-2 rounded-full border border-primary-700/50">
+                  <div className="w-2 h-2 bg-accent-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm text-primary-300">1000+ Verified Barbers</span>
+                </div>
+                <div className="flex items-center space-x-2 bg-primary-800/30 backdrop-blur-sm px-4 py-2 rounded-full border border-primary-700/50">
+                  <div className="w-2 h-2 bg-accent-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm text-primary-300">AI-Powered Matching</span>
+                </div>
+              </div>
             </div>
 
             {/* Search Bar */}
