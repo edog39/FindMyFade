@@ -38,13 +38,29 @@ export default function SignUpPage() {
     bio: '',
     // Client specific
     preferredStyle: '',
-    gender: '' as 'male' | 'female' | ''
+    gender: '' as 'male' | 'female' | '',
+    preferences: [] as string[] // fades, tapers, etc.
   })
 
   const specialtyOptions = [
     'Classic Cuts', 'Modern Fades', 'Beard Trimming', 'Straight Razor', 
     'Hair Styling', 'Color Services', 'Hot Towel Shaves', 'Mustache Styling'
   ]
+
+  const clientPreferenceOptions = [
+    'Low Fades', 'Mid Fades', 'High Fades', 'Tapers', 
+    'Skin Fades', 'Drop Fades', 'Burst Fades', 'Temple Fades',
+    'Line-ups', 'Beard Styling', 'Classic Cuts', 'Modern Styles'
+  ]
+
+  const handlePreferenceToggle = (preference: string) => {
+    setFormData(prev => ({
+      ...prev,
+      preferences: prev.preferences.includes(preference)
+        ? prev.preferences.filter(p => p !== preference)
+        : [...prev.preferences, preference]
+    }))
+  }
 
   const handleSpecialtyToggle = (specialty: string) => {
     setFormData(prev => ({
@@ -60,7 +76,7 @@ export default function SignUpPage() {
   }
 
   const handleNextStep = () => {
-    if (step < (userType === 'barber' ? 3 : 2)) {
+    if (step < 3) { // Both clients and barbers now have 3 steps
       setStep(step + 1)
     }
   }
@@ -82,8 +98,11 @@ export default function SignUpPage() {
       userType: userType,
       accountType: userType,
       createdAt: new Date().toISOString(),
-      // Include gender if provided, otherwise default to 'male' for clients
-      ...(userType === 'client' ? { gender: formData.gender || 'male' } : {}),
+      // Include gender and preferences if client
+      ...(userType === 'client' ? { 
+        gender: formData.gender || 'male',
+        preferences: formData.preferences 
+      } : {}),
       ...(userType === 'barber' ? { 
         shopName: formData.shopName,
         experience: formData.experience,
@@ -103,6 +122,40 @@ export default function SignUpPage() {
     
     if (userType === 'client' && formData.gender) {
       localStorage.setItem('userGender', formData.gender)
+    }
+    
+    // If barber, add to discoverable barbers list
+    if (userType === 'barber') {
+      const userCreatedBarbers = JSON.parse(localStorage.getItem('userCreatedBarbers') || '[]')
+      const newBarber = {
+        id: Date.now(), // Unique ID
+        name: `${formData.firstName} ${formData.lastName}`,
+        shopName: formData.shopName || `${formData.firstName}'s Barber Shop`,
+        image: 'https://via.placeholder.com/400x300?text=Your+Shop',
+        rating: 5.0,
+        reviews: 0,
+        distance: 0.1, // New shop, show as nearby
+        price: '$$',
+        specialties: formData.specialties || ['Haircuts', 'Fades'],
+        verified: false,
+        promoted: false,
+        address: formData.address || 'Address not set',
+        city: 'Your City',
+        state: 'Your State',
+        phone: formData.phone || '',
+        instagram: '',
+        bio: formData.bio || 'Professional barber',
+        yearsExperience: formData.experience || '1+',
+        availability: [], // Will be set in dashboard
+        services: [
+          { id: 1, name: 'Haircut', price: 30, duration: '30 min' },
+          { id: 2, name: 'Haircut + Beard', price: 45, duration: '45 min' },
+          { id: 3, name: 'Kids Cut', price: 25, duration: '25 min' }
+        ]
+      }
+      userCreatedBarbers.push(newBarber)
+      localStorage.setItem('userCreatedBarbers', JSON.stringify(userCreatedBarbers))
+      console.log('✅ Barber added to discoverable list:', newBarber)
     }
     
     // Verify it was saved
@@ -223,7 +276,7 @@ export default function SignUpPage() {
               {userType === 'client' ? 'Personal Information' : 'Basic Information'}
             </h2>
 
-            <form onSubmit={userType === 'client' ? handleSubmit : handleNextStep} className="space-y-4">
+            <form onSubmit={handleNextStep} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -429,6 +482,79 @@ export default function SignUpPage() {
         )}
 
         {/* Step 3: Barber Details */}
+        {step === 3 && userType === 'client' && (
+          <div className="card">
+            <div className="flex items-center justify-center space-x-2 mb-6">
+              <div className="w-8 h-1 bg-accent-500 rounded-full"></div>
+              <div className="w-8 h-1 bg-accent-500 rounded-full"></div>
+              <div className="w-8 h-1 bg-accent-500 rounded-full"></div>
+            </div>
+
+            <h2 className="font-semibold text-white text-xl mb-6 text-center">
+              What Are You Looking For?
+            </h2>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <p className="text-primary-300 text-sm mb-4 text-center">
+                  Select your preferred haircut styles so we can match you with the best barbers
+                </p>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  {clientPreferenceOptions.map(preference => (
+                    <button
+                      key={preference}
+                      type="button"
+                      onClick={() => handlePreferenceToggle(preference)}
+                      className={`p-4 rounded-xl border-2 transition-all text-left ${
+                        formData.preferences.includes(preference)
+                          ? 'border-accent-500 bg-accent-500/20 text-accent-400'
+                          : 'border-primary-700 hover:border-primary-600 text-primary-300'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                          formData.preferences.includes(preference)
+                            ? 'border-accent-500 bg-accent-500'
+                            : 'border-primary-600'
+                        }`}>
+                          {formData.preferences.includes(preference) && (
+                            <CheckCircle size={12} className="text-white" />
+                          )}
+                        </div>
+                        <span className="font-medium">{preference}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setStep(step - 1)}
+                  className="flex-1 btn-secondary flex items-center justify-center space-x-2"
+                >
+                  <ChevronLeft size={18} />
+                  <span>Back</span>
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 btn-primary"
+                >
+                  Create Account
+                </button>
+              </div>
+
+              <p className="text-primary-400 text-sm text-center">
+                {formData.preferences.length > 0 
+                  ? `${formData.preferences.length} preference${formData.preferences.length > 1 ? 's' : ''} selected` 
+                  : 'Select at least one preference (optional)'}
+              </p>
+            </form>
+          </div>
+        )}
+
         {step === 3 && userType === 'barber' && (
           <div className="card">
             <div className="flex items-center justify-center space-x-2 mb-6">

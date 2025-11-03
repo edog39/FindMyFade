@@ -21,7 +21,14 @@ import {
   MessageCircle,
   Bell,
   BarChart3,
-  Scissors
+  Scissors,
+  LogOut,
+  Camera,
+  MapPin,
+  Phone,
+  Mail,
+  Instagram,
+  Globe
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -42,8 +49,16 @@ export default function BarberDashboardPage() {
     bio: '',
     specialties: [] as string[],
     address: '',
-    phone: ''
+    phone: '',
+    instagram: '',
+    website: '',
+    pricing: '',
+    profileImage: '',
+    coverImage: ''
   })
+  const [myBarberId, setMyBarberId] = useState<number | null>(null)
+  const profileImageRef = useRef<HTMLInputElement>(null)
+  const coverImageRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -61,7 +76,12 @@ export default function BarberDashboardPage() {
           bio: profile.bio || '',
           specialties: profile.specialties || [],
           address: profile.address || '',
-          phone: profile.phone || ''
+          phone: profile.phone || '',
+          instagram: profile.instagram || '',
+          website: profile.website || '',
+          pricing: profile.pricing || '$$',
+          profileImage: profile.profileImage || '',
+          coverImage: profile.coverImage || ''
         })
       } else {
         router.push('/login')
@@ -87,6 +107,19 @@ export default function BarberDashboardPage() {
           endTime: '20:00'
         }))
         setAvailability(defaultAvailability)
+      }
+
+      // Find my barber ID from user-created barbers
+      const userCreatedBarbers = JSON.parse(localStorage.getItem('userCreatedBarbers') || '[]')
+      if (userProfile) {
+        const profile = JSON.parse(userProfile)
+        const myBarber = userCreatedBarbers.find((b: any) => 
+          b.name === `${profile.firstName} ${profile.lastName}` ||
+          b.shopName === profile.shopName
+        )
+        if (myBarber) {
+          setMyBarberId(myBarber.id)
+        }
       }
     }
   }, [router])
@@ -152,8 +185,55 @@ export default function BarberDashboardPage() {
     }
     setBarberProfile(updatedProfile)
     localStorage.setItem('userProfile', JSON.stringify(updatedProfile))
+    
+    // Also update in userCreatedBarbers if it exists
+    const userCreatedBarbers = JSON.parse(localStorage.getItem('userCreatedBarbers') || '[]')
+    const barberIndex = userCreatedBarbers.findIndex((b: any) => b.id === myBarberId)
+    if (barberIndex !== -1) {
+      userCreatedBarbers[barberIndex] = {
+        ...userCreatedBarbers[barberIndex],
+        shopName: profileData.shopName,
+        bio: profileData.bio,
+        specialties: profileData.specialties,
+        address: profileData.address,
+        phone: profileData.phone,
+        instagram: profileData.instagram,
+        image: profileData.profileImage || userCreatedBarbers[barberIndex].image
+      }
+      localStorage.setItem('userCreatedBarbers', JSON.stringify(userCreatedBarbers))
+    }
+    
     setEditingProfile(false)
     alert('✅ Profile updated successfully!')
+  }
+
+  const handleLogout = () => {
+    if (confirm('Are you sure you want to logout?')) {
+      localStorage.removeItem('isLoggedIn')
+      router.push('/login')
+    }
+  }
+
+  const handleProfileImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      setProfileData({...profileData, profileImage: event.target?.result as string})
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleCoverImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      setProfileData({...profileData, coverImage: event.target?.result as string})
+    }
+    reader.readAsDataURL(file)
   }
 
   if (!barberProfile) {
@@ -177,10 +257,27 @@ export default function BarberDashboardPage() {
                 <p className="text-primary-300 text-sm">{barberProfile.shopName || 'Your Barber Business'}</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              {myBarberId && (
+                <Link
+                  href={`/barber/${myBarberId}`}
+                  target="_blank"
+                  className="btn-secondary flex items-center space-x-2 text-sm px-4 py-2"
+                >
+                  <Users size={16} />
+                  <span>Preview My Profile</span>
+                </Link>
+              )}
               <button className="relative text-primary-300 hover:text-white transition-colors">
                 <Bell size={20} />
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">3</span>
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500 text-red-400 hover:text-red-300 px-4 py-2 rounded-lg transition-all"
+              >
+                <LogOut size={16} />
+                <span className="text-sm font-medium">Logout</span>
               </button>
             </div>
           </div>
@@ -479,7 +576,72 @@ export default function BarberDashboardPage() {
             </div>
 
             <div className="card">
-              <div className="space-y-4">
+              <div className="space-y-6">
+                {/* Profile Picture Section */}
+                <div>
+                  <label className="block text-primary-300 text-sm font-medium mb-3">Profile Picture</label>
+                  <div className="flex items-center space-x-4">
+                    <div className="relative">
+                      <div className="w-24 h-24 rounded-full overflow-hidden bg-primary-800 flex items-center justify-center border-2 border-primary-700">
+                        {profileData.profileImage ? (
+                          <img src={profileData.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                          <Scissors className="w-10 h-10 text-primary-600" />
+                        )}
+                      </div>
+                      {editingProfile && (
+                        <button
+                          onClick={() => profileImageRef.current?.click()}
+                          className="absolute bottom-0 right-0 bg-accent-500 hover:bg-accent-600 text-white p-2 rounded-full transition-all"
+                        >
+                          <Camera size={14} />
+                        </button>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-white font-medium mb-1">{profileData.shopName || 'Your Shop'}</p>
+                      <p className="text-primary-400 text-sm">{profileData.phone || 'No phone set'}</p>
+                    </div>
+                  </div>
+                  <input
+                    ref={profileImageRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleProfileImageUpload}
+                    className="hidden"
+                  />
+                </div>
+
+                {/* Cover Image Section */}
+                <div>
+                  <label className="block text-primary-300 text-sm font-medium mb-3">Cover Image</label>
+                  <div className="relative h-40 rounded-xl overflow-hidden bg-primary-800 border-2 border-primary-700">
+                    {profileData.coverImage ? (
+                      <img src={profileData.coverImage} alt="Cover" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-primary-600">
+                        <ImageIcon size={48} />
+                      </div>
+                    )}
+                    {editingProfile && (
+                      <button
+                        onClick={() => coverImageRef.current?.click()}
+                        className="absolute bottom-3 right-3 bg-accent-500 hover:bg-accent-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all"
+                      >
+                        <Camera size={16} />
+                        <span className="text-sm font-medium">Change Cover</span>
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    ref={coverImageRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCoverImageUpload}
+                    className="hidden"
+                  />
+                </div>
+
                 <div>
                   <label className="block text-primary-300 text-sm font-medium mb-2">Shop Name</label>
                   {editingProfile ? (
@@ -537,6 +699,69 @@ export default function BarberDashboardPage() {
                     />
                   ) : (
                     <p className="text-white">{profileData.phone || barberProfile.phone}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-primary-300 text-sm font-medium mb-2">Instagram</label>
+                  {editingProfile ? (
+                    <div className="flex items-center space-x-2">
+                      <Instagram size={18} className="text-primary-400" />
+                      <input
+                        type="text"
+                        value={profileData.instagram}
+                        onChange={(e) => setProfileData({...profileData, instagram: e.target.value})}
+                        className="input w-full"
+                        placeholder="@yourshopname"
+                      />
+                    </div>
+                  ) : (
+                    <p className="text-white flex items-center space-x-2">
+                      <Instagram size={18} className="text-primary-400" />
+                      <span>{profileData.instagram || 'Not set'}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-primary-300 text-sm font-medium mb-2">Website</label>
+                  {editingProfile ? (
+                    <div className="flex items-center space-x-2">
+                      <Globe size={18} className="text-primary-400" />
+                      <input
+                        type="url"
+                        value={profileData.website}
+                        onChange={(e) => setProfileData({...profileData, website: e.target.value})}
+                        className="input w-full"
+                        placeholder="https://yourshop.com"
+                      />
+                    </div>
+                  ) : (
+                    <p className="text-white flex items-center space-x-2">
+                      <Globe size={18} className="text-primary-400" />
+                      <span>{profileData.website || 'Not set'}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-primary-300 text-sm font-medium mb-2">Pricing Level</label>
+                  {editingProfile ? (
+                    <select
+                      value={profileData.pricing}
+                      onChange={(e) => setProfileData({...profileData, pricing: e.target.value})}
+                      className="input w-full"
+                    >
+                      <option value="$">Budget-Friendly ($)</option>
+                      <option value="$$">Moderate ($$)</option>
+                      <option value="$$$">Premium ($$$)</option>
+                      <option value="$$$$">Luxury ($$$$)</option>
+                    </select>
+                  ) : (
+                    <p className="text-white flex items-center space-x-2">
+                      <DollarSign size={18} className="text-primary-400" />
+                      <span>{profileData.pricing || '$$'}</span>
+                    </p>
                   )}
                 </div>
 

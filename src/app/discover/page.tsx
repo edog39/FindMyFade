@@ -117,12 +117,76 @@ export default function DiscoverPage() {
   const [onlyVerified, setOnlyVerified] = useState(false)
   const [availableToday, setAvailableToday] = useState(false)
   const [displayBarbers, setDisplayBarbers] = useState(allBarbers)
+  const [combinedBarbers, setCombinedBarbers] = useState(allBarbers)
+  const [clientPreferences, setClientPreferences] = useState<string[]>([])
+  const [matchedBarbersOnly, setMatchedBarbersOnly] = useState(true)
 
   const specialties = ["Fade", "Beard Trim", "Classic Cuts", "Modern Fades", "Hair Design", "Straight Razor", "Hot Towel Shave", "Mustache Styling", "Creative Cuts", "Color", "Styling"]
+
+  // Load user-created barbers and combine with default barbers
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userCreatedBarbers = JSON.parse(localStorage.getItem('userCreatedBarbers') || '[]')
+      const formattedUserBarbers = userCreatedBarbers.map((barber: any) => ({
+        id: barber.id,
+        name: barber.shopName,
+        rating: barber.rating,
+        reviews: barber.reviews,
+        distance: barber.distance,
+        image: barber.image,
+        specialties: barber.specialties,
+        price: barber.price,
+        nextAvailable: barber.nextAvailable || 'Available',
+        address: barber.address,
+        phone: barber.phone,
+        verified: barber.verified,
+        promoted: barber.promoted,
+        city: barber.city,
+        state: barber.state
+      }))
+      
+      // Combine user-created barbers with default ones (user barbers first)
+      const combined = [...formattedUserBarbers, ...allBarbers]
+      setCombinedBarbers(combined)
+      setDisplayBarbers(combined)
+      
+      // Load client preferences
+      const userProfile = localStorage.getItem('userProfile')
+      if (userProfile) {
+        const profile = JSON.parse(userProfile)
+        if (profile.preferences && profile.preferences.length > 0) {
+          setClientPreferences(profile.preferences)
+        }
+      }
+    }
+  }, [])
 
   // Load nearby barbers if in nearby mode
   useEffect(() => {
     if (nearbyMode) {
+      // Get user-created barbers
+      const userCreatedBarbers = typeof window !== 'undefined' 
+        ? JSON.parse(localStorage.getItem('userCreatedBarbers') || '[]')
+        : []
+      
+      const formattedUserBarbers = userCreatedBarbers.map((barber: any) => ({
+        id: barber.id,
+        name: barber.shopName,
+        rating: barber.rating,
+        reviews: barber.reviews,
+        distance: barber.distance,
+        image: barber.image,
+        specialties: barber.specialties,
+        price: barber.price,
+        nextAvailable: barber.nextAvailable || 'Available',
+        address: barber.address,
+        phone: barber.phone,
+        verified: barber.verified,
+        promoted: barber.promoted,
+        city: barber.city,
+        state: barber.state
+      }))
+      
       const nearby = getNearbyBarbers(20).map(barber => ({
         id: barber.id,
         name: barber.shopName,
@@ -140,7 +204,9 @@ export default function DiscoverPage() {
         city: barber.city,
         state: barber.state
       }))
-      setDisplayBarbers(nearby)
+      
+      // Combine user barbers with nearby (user barbers first)
+      setDisplayBarbers([...formattedUserBarbers, ...nearby])
       setSortBy('distance')
     }
   }, [nearbyMode])
@@ -165,7 +231,21 @@ export default function DiscoverPage() {
     const matchesSpecialties = selectedSpecialties.length === 0 || 
                               selectedSpecialties.some(s => barber.specialties.includes(s))
     
-    return matchesSearch && matchesVerified && matchesAvailable && matchesSpecialties
+    // Match client preferences with barber specialties
+    const matchesPreferences = !matchedBarbersOnly || clientPreferences.length === 0 ||
+                              clientPreferences.some(pref => 
+                                barber.specialties.some(spec => 
+                                  spec.toLowerCase().includes(pref.toLowerCase()) ||
+                                  pref.toLowerCase().includes(spec.toLowerCase()) ||
+                                  // Match "Low Fades" with "Fade", "Mid Fades" with "Modern Fades", etc.
+                                  (pref.includes('Fade') && spec.toLowerCase().includes('fade')) ||
+                                  (pref.includes('Taper') && spec.toLowerCase().includes('taper')) ||
+                                  (pref.toLowerCase().includes('line') && spec.toLowerCase().includes('edge')) ||
+                                  (pref.toLowerCase().includes('beard') && spec.toLowerCase().includes('beard'))
+                                )
+                              )
+    
+    return matchesSearch && matchesVerified && matchesAvailable && matchesSpecialties && matchesPreferences
   })
 
   const sortedBarbers = [...filteredBarbers].sort((a, b) => {
@@ -191,9 +271,32 @@ export default function DiscoverPage() {
               <h1 className="font-display font-bold text-3xl text-white mb-2">
                 {nearbyMode ? '📍 Barbers Near You' : 'Discover Barbers'}
               </h1>
-              <p className="text-primary-300">
+              <p className="text-primary-300 mb-2">
                 {nearbyMode ? 'Top-rated barbers in your area' : 'Find the perfect barber anywhere in the US'}
               </p>
+              {clientPreferences.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  <span className="text-xs text-primary-400 font-medium">Your Preferences:</span>
+                  {clientPreferences.map((pref, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-accent-500/20 text-accent-400 border border-accent-500/30"
+                    >
+                      {pref}
+                    </span>
+                  ))}
+                  <button
+                    onClick={() => setMatchedBarbersOnly(!matchedBarbersOnly)}
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                      matchedBarbersOnly
+                        ? 'bg-accent-500/30 text-accent-300 border border-accent-500/50'
+                        : 'bg-primary-700/50 text-primary-400 border border-primary-600'
+                    }`}
+                  >
+                    {matchedBarbersOnly ? '✓ Matched Only' : 'Show All'}
+                  </button>
+                </div>
+              )}
             </div>
             <button 
               onClick={() => router.back()} 

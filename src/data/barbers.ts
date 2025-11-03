@@ -793,3 +793,29 @@ export function getNearbyBarbers(count: number = 10): Barber[] {
     distance: parseFloat((Math.random() * 5 + 0.1).toFixed(1))
   }))
 }
+
+// Helper to get barber by ID (includes user-created barbers)
+export function getBarberById(id: number): Barber | null {
+  // Check default barbers first
+  const defaultBarber = usBarbers.find(b => b.id === id)
+  if (defaultBarber) return defaultBarber
+  
+  // Check user-created barbers
+  if (typeof window !== 'undefined') {
+    const userCreatedBarbers = JSON.parse(localStorage.getItem('userCreatedBarbers') || '[]')
+    const userBarber = userCreatedBarbers.find((b: any) => b.id === id)
+    if (userBarber) {
+      // Convert to Barber type
+      return {
+        ...userBarber,
+        latitude: 0, // Will be set when we add location
+        longitude: 0,
+        zipCode: '',
+        website: '',
+        yearsExperience: parseInt(userBarber.experience) || 1
+      } as Barber
+    }
+  }
+  
+  return null
+}
