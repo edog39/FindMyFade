@@ -26,19 +26,46 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState('')
   const [searchType, setSearchType] = useState<'location' | 'barber' | 'style'>('location')
   const [showWelcomeModal, setShowWelcomeModal] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userName, setUserName] = useState('')
+  const [userType, setUserType] = useState('')
+  const [showProfileMenu, setShowProfileMenu] = useState(false)
 
-  // Check if user has visited before
+  // Check if user has visited before and if they're logged in
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const hasVisited = localStorage.getItem('hasVisitedBefore')
-      const userType = localStorage.getItem('userType')
+      const storedUserType = localStorage.getItem('userType')
+      const userProfile = localStorage.getItem('userProfile')
       
-      if (!hasVisited && !userType) {
+      if (userProfile) {
+        const profile = JSON.parse(userProfile)
+        setIsLoggedIn(true)
+        setUserName(profile.name || profile.fullName || 'User')
+        setUserType(profile.accountType || storedUserType || 'client')
+      }
+      
+      if (!hasVisited && !storedUserType && !userProfile) {
         // First time visitor - show welcome modal
         setShowWelcomeModal(true)
       }
     }
   }, [])
+
+  // Close profile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (showProfileMenu && !target.closest('.profile-menu-container')) {
+        setShowProfileMenu(false)
+      }
+    }
+
+    if (showProfileMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showProfileMenu])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -68,6 +95,18 @@ export default function Home() {
   const handleSkip = () => {
     localStorage.setItem('hasVisitedBefore', 'true')
     setShowWelcomeModal(false)
+  }
+
+  const handleLogout = () => {
+    if (confirm('Are you sure you want to logout?')) {
+      localStorage.removeItem('userProfile')
+      localStorage.removeItem('userType')
+      setIsLoggedIn(false)
+      setUserName('')
+      setUserType('')
+      setShowProfileMenu(false)
+      router.push('/')
+    }
   }
 
   return (
@@ -109,12 +148,83 @@ export default function Home() {
                 <Link href="/feedback" className="text-primary-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
                   Feedback
                 </Link>
-                <Link href="/login" className="btn-secondary">
-                  Sign In
-                </Link>
-                <Link href="/signup" className="btn-primary">
-                  Get Started
-                </Link>
+                
+                {isLoggedIn ? (
+                  <div className="relative profile-menu-container">
+                    <button
+                      onClick={() => setShowProfileMenu(!showProfileMenu)}
+                      className="flex items-center space-x-2 bg-primary-800 hover:bg-primary-700 border border-primary-600 hover:border-accent-500 px-4 py-2 rounded-lg transition-all"
+                    >
+                      <div className="w-8 h-8 bg-gradient-to-br from-accent-400 to-accent-600 rounded-full flex items-center justify-center">
+                        <span className="text-black font-bold text-sm">
+                          {userName.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="text-left">
+                        <p className="text-white text-sm font-medium">{userName}</p>
+                        <p className="text-primary-400 text-xs capitalize">{userType}</p>
+                      </div>
+                      <ChevronDown size={16} className="text-primary-400" />
+                    </button>
+
+                    {showProfileMenu && (
+                      <div className="absolute right-0 mt-2 w-56 bg-primary-800 border border-primary-700 rounded-xl shadow-2xl overflow-hidden">
+                        <div className="bg-gradient-to-r from-accent-500/20 to-accent-600/20 p-3 border-b border-primary-700">
+                          <p className="text-white font-semibold">{userName}</p>
+                          <p className="text-primary-400 text-xs capitalize">{userType} Account</p>
+                        </div>
+                        <div className="py-2">
+                          <Link 
+                            href="/appointments"
+                            className="flex items-center space-x-3 px-4 py-2 hover:bg-primary-700 text-primary-300 hover:text-white transition-colors"
+                          >
+                            <Calendar size={16} />
+                            <span className="text-sm">My Appointments</span>
+                          </Link>
+                          <Link 
+                            href="/wallet"
+                            className="flex items-center space-x-3 px-4 py-2 hover:bg-primary-700 text-primary-300 hover:text-white transition-colors"
+                          >
+                            <CreditCard size={16} />
+                            <span className="text-sm">Wallet & Rewards</span>
+                          </Link>
+                          <Link 
+                            href="/ai-style"
+                            className="flex items-center space-x-3 px-4 py-2 hover:bg-primary-700 text-primary-300 hover:text-white transition-colors"
+                          >
+                            <Scissors size={16} />
+                            <span className="text-sm">AI Style Match</span>
+                          </Link>
+                          <Link 
+                            href="/feedback"
+                            className="flex items-center space-x-3 px-4 py-2 hover:bg-primary-700 text-primary-300 hover:text-white transition-colors"
+                          >
+                            <Star size={16} />
+                            <span className="text-sm">Send Feedback</span>
+                          </Link>
+                        </div>
+                        <div className="border-t border-primary-700 py-2">
+                          <button
+                            onClick={handleLogout}
+                            className="flex items-center space-x-3 px-4 py-2 hover:bg-red-500/10 text-red-400 hover:text-red-300 transition-colors w-full text-left"
+                          >
+                            <X size={16} />
+                            <span className="text-sm font-medium">Logout</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <Link href="/login" className="btn-secondary">
+                      Sign In
+                    </Link>
+                    <Link href="/signup" className="btn-primary">
+                      Get Started
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
 
@@ -155,12 +265,64 @@ export default function Home() {
               <Link href="/feedback" className="text-primary-300 hover:text-white block px-3 py-2 text-base font-medium">
                 Feedback
               </Link>
-              <Link href="/login" className="text-primary-300 hover:text-white block px-3 py-2 text-base font-medium">
-                Sign In
-              </Link>
-              <Link href="/signup" className="btn-primary block text-center mx-3 my-2">
-                Get Started
-              </Link>
+              
+              {isLoggedIn ? (
+                <>
+                  <div className="px-3 py-4 border-t border-primary-700 mt-2">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-accent-400 to-accent-600 rounded-full flex items-center justify-center">
+                        <span className="text-black font-bold text-lg">
+                          {userName.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-white font-semibold">{userName}</p>
+                        <p className="text-primary-400 text-sm capitalize">{userType} Account</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Link 
+                        href="/appointments"
+                        className="flex items-center space-x-3 bg-primary-800 hover:bg-primary-700 px-4 py-3 rounded-lg text-primary-300 hover:text-white transition-colors"
+                      >
+                        <Calendar size={18} />
+                        <span>My Appointments</span>
+                      </Link>
+                      <Link 
+                        href="/wallet"
+                        className="flex items-center space-x-3 bg-primary-800 hover:bg-primary-700 px-4 py-3 rounded-lg text-primary-300 hover:text-white transition-colors"
+                      >
+                        <CreditCard size={18} />
+                        <span>Wallet & Rewards</span>
+                      </Link>
+                      <Link 
+                        href="/ai-style"
+                        className="flex items-center space-x-3 bg-primary-800 hover:bg-primary-700 px-4 py-3 rounded-lg text-primary-300 hover:text-white transition-colors"
+                      >
+                        <Scissors size={18} />
+                        <span>AI Style Match</span>
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center space-x-3 bg-red-500/10 hover:bg-red-500/20 px-4 py-3 rounded-lg text-red-400 hover:text-red-300 transition-colors w-full text-left"
+                      >
+                        <X size={18} />
+                        <span className="font-medium">Logout</span>
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" className="text-primary-300 hover:text-white block px-3 py-2 text-base font-medium">
+                    Sign In
+                  </Link>
+                  <Link href="/signup" className="btn-primary block text-center mx-3 my-2">
+                    Get Started
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}
