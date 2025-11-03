@@ -770,8 +770,8 @@ export default function Home() {
 
       {/* Welcome Modal - First Time Visitors */}
       {showWelcomeModal && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-          <div className="bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 rounded-3xl max-w-2xl w-full p-8 border-2 border-accent-500/30 shadow-2xl animate-fade-in">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 rounded-3xl max-w-2xl w-full p-8 border-2 border-accent-500/30 shadow-2xl animate-fade-in my-8 max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="text-center mb-8">
               <div className="w-20 h-20 bg-gradient-to-br from-accent-400 to-accent-600 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -780,21 +780,21 @@ export default function Home() {
               <h1 className="font-display font-bold text-4xl text-white mb-3">
                 Welcome to FindMyFade!
               </h1>
-              <p className="text-primary-300 text-lg">
-                Let&apos;s get you started. Are you here as a...
+              <p className="text-primary-300 text-base md:text-lg">
+                Choose your experience or continue as a guest
               </p>
             </div>
 
             {/* User Type Selection */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               {/* Client Card */}
-              <div className="bg-primary-800/50 border-2 border-primary-700 hover:border-accent-500 rounded-2xl p-6 transition-all hover:scale-105 group">
-                <div className="flex flex-col items-center text-center mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <User size={32} className="text-white" />
+              <div className="bg-primary-800/50 border-2 border-primary-700 hover:border-accent-500 rounded-2xl p-4 md:p-6 transition-all hover:scale-105 group">
+                <div className="flex flex-col items-center text-center mb-4 md:mb-6">
+                  <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 transition-transform">
+                    <User size={28} className="text-white md:w-8 md:h-8" />
                   </div>
-                  <h3 className="font-bold text-2xl text-white mb-2">Client</h3>
-                  <p className="text-primary-300 text-sm">
+                  <h3 className="font-bold text-xl md:text-2xl text-white mb-1 md:mb-2">Client</h3>
+                  <p className="text-primary-300 text-xs md:text-sm">
                     Find barbers, book appointments, and discover your perfect style
                   </p>
                 </div>
@@ -816,13 +816,13 @@ export default function Home() {
               </div>
 
               {/* Barber Card */}
-              <div className="bg-primary-800/50 border-2 border-primary-700 hover:border-accent-500 rounded-2xl p-6 transition-all hover:scale-105 group">
-                <div className="flex flex-col items-center text-center mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-accent-400 to-accent-600 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <Scissors size={32} className="text-black" />
+              <div className="bg-primary-800/50 border-2 border-primary-700 hover:border-accent-500 rounded-2xl p-4 md:p-6 transition-all hover:scale-105 group">
+                <div className="flex flex-col items-center text-center mb-4 md:mb-6">
+                  <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-accent-400 to-accent-600 rounded-full flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 transition-transform">
+                    <Scissors size={28} className="text-black md:w-8 md:h-8" />
                   </div>
-                  <h3 className="font-bold text-2xl text-white mb-2">Barber</h3>
-                  <p className="text-primary-300 text-sm">
+                  <h3 className="font-bold text-xl md:text-2xl text-white mb-1 md:mb-2">Barber</h3>
+                  <p className="text-primary-300 text-xs md:text-sm">
                     Grow your business, manage bookings, and connect with clients
                   </p>
                 </div>
@@ -844,34 +844,38 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Skip Button */}
+            {/* Continue as Guest */}
             <div className="text-center">
               <button
                 onClick={handleSkip}
-                className="text-primary-400 hover:text-white text-sm transition-colors"
+                className="w-full bg-primary-700/50 hover:bg-primary-600/50 border-2 border-primary-600 hover:border-primary-500 text-white font-medium py-3 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
               >
-                Skip for now, just browsing
+                <Users size={20} />
+                <span>Continue as Guest</span>
               </button>
+              <p className="text-primary-500 text-xs mt-2">
+                Browse without creating an account
+              </p>
             </div>
 
             {/* Benefits */}
-            <div className="mt-8 pt-6 border-t border-primary-700">
-              <div className="grid grid-cols-2 gap-4 text-center">
+            <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-primary-700">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 text-center">
                 <div>
-                  <div className="text-accent-500 font-bold text-2xl mb-1">150+</div>
-                  <div className="text-primary-400 text-xs">Barbers Nationwide</div>
+                  <div className="text-accent-500 font-bold text-xl md:text-2xl mb-1">150+</div>
+                  <div className="text-primary-400 text-[10px] md:text-xs">Barbers Nationwide</div>
                 </div>
                 <div>
-                  <div className="text-accent-500 font-bold text-2xl mb-1">AI</div>
-                  <div className="text-primary-400 text-xs">Style Matching</div>
+                  <div className="text-accent-500 font-bold text-xl md:text-2xl mb-1">AI</div>
+                  <div className="text-primary-400 text-[10px] md:text-xs">Style Matching</div>
                 </div>
                 <div>
-                  <div className="text-accent-500 font-bold text-2xl mb-1">1.5x</div>
-                  <div className="text-primary-400 text-xs">Prepay Rewards</div>
+                  <div className="text-accent-500 font-bold text-xl md:text-2xl mb-1">1.5x</div>
+                  <div className="text-primary-400 text-[10px] md:text-xs">Prepay Rewards</div>
                 </div>
                 <div>
-                  <div className="text-accent-500 font-bold text-2xl mb-1">Free</div>
-                  <div className="text-primary-400 text-xs">To Get Started</div>
+                  <div className="text-accent-500 font-bold text-xl md:text-2xl mb-1">Free</div>
+                  <div className="text-primary-400 text-[10px] md:text-xs">To Get Started</div>
                 </div>
               </div>
             </div>
