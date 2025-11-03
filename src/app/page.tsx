@@ -41,8 +41,12 @@ export default function Home() {
       if (userProfile) {
         const profile = JSON.parse(userProfile)
         setIsLoggedIn(true)
-        setUserName(profile.name || profile.fullName || 'User')
-        setUserType(profile.accountType || storedUserType || 'client')
+        // Get name from signup fields (firstName + lastName)
+        const fullName = profile.firstName 
+          ? `${profile.firstName} ${profile.lastName || ''}`.trim()
+          : profile.name || profile.fullName || 'User'
+        setUserName(fullName)
+        setUserType(profile.userType || profile.accountType || storedUserType || 'client')
       }
       
       if (!hasVisited && !storedUserType && !userProfile) {
