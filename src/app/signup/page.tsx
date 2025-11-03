@@ -112,9 +112,13 @@ export default function SignUpPage() {
     // Show success message
     alert(`✅ Account created successfully! Welcome, ${formData.firstName}! 🎉`)
     
-    // Redirect to home after signup
+    // Redirect based on user type
     setTimeout(() => {
-      router.push('/')
+      if (userType === 'barber') {
+        router.push('/barber-dashboard')
+      } else {
+        router.push('/')
+      }
     }, 100)
   }
 

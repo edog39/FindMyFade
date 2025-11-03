@@ -43,6 +43,13 @@ export default function Home() {
       
       if (userProfile && loggedIn) {
         const profile = JSON.parse(userProfile)
+        
+        // Redirect barbers to their dashboard
+        if (profile.userType === 'barber' || profile.accountType === 'barber') {
+          router.push('/barber-dashboard')
+          return
+        }
+        
         setIsLoggedIn(true)
         // Get name from signup fields (firstName + lastName)
         const fullName = profile.firstName 

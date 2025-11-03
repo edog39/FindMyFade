@@ -53,7 +53,13 @@ export default function LoginPage() {
         
         // Show success and redirect
         alert(`Welcome back, ${profile.firstName}! 🎉`)
-        router.push('/')
+        
+        // Redirect based on user type
+        if (profile.userType === 'barber' || profile.accountType === 'barber') {
+          router.push('/barber-dashboard')
+        } else {
+          router.push('/')
+        }
       } else if (profile.email === formData.email) {
         // Email matches but password doesn't
         setError('Incorrect password. Please try again.')
@@ -113,7 +119,13 @@ export default function LoginPage() {
     }
     
     alert(`🎉 Logged in as Demo ${type === 'client' ? 'Client' : 'Barber'}!`)
-    router.push('/')
+    
+    // Redirect based on type
+    if (type === 'barber') {
+      router.push('/barber-dashboard')
+    } else {
+      router.push('/')
+    }
   }
 
   return (
