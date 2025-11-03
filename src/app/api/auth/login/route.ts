@@ -45,10 +45,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       message: 'Login successful',
-      user: {
-        ...userWithoutPassword,
-        preferences: user.preferences ? user.preferences.split(',') : []
-      }
+      user: userWithoutPassword
     })
   } catch (error) {
     console.error('Login error:', error)

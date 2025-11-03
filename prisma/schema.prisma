@@ -6,11 +6,31 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-// Note: SQLite doesn't support enums, so we use String with @default values
+enum UserType {
+  CLIENT
+  BARBER
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+  FAILED
+}
 
 model User {
   id        String   @id @default(cuid())
@@ -20,14 +40,14 @@ model User {
   firstName String
   lastName  String
   avatar    String?
-  userType  String   // "CLIENT" | "BARBER" | "ADMIN"
+  userType  UserType
   verified  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Client specific
-  preferences     String?   // Comma-separated list of preferences
-  preferredStyles String?   // Comma-separated list of styles
+  preferences     String[]  @default([])
+  preferredStyles String[]  @default([])
   loyaltyPoints   Int       @default(0)
   walletBalance   Float     @default(0.0)
 
@@ -63,7 +83,7 @@ model BarberProfile {
   longitude       Float?
   
   // Business info
-  businessHours   String?  // Store as JSON string: { monday: { open: "09:00", close: "18:00" }, ... }
+  businessHours   Json?    // Store as JSON: { monday: { open: "09:00", close: "18:00" }, ... }
   isOpen          Boolean  @default(true)
   acceptsWalkIns  Boolean  @default(false)
   pricing         String   @default("$$") // $, $$, $$$, $$$$
@@ -149,7 +169,7 @@ model Booking {
   appointmentDate DateTime
   startTime       DateTime
   endTime         DateTime
-  status          String        @default("PENDING") // "PENDING" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "NO_SHOW"
+  status          BookingStatus @default(PENDING)
   
   totalPrice      Float
   notes           String?
@@ -188,7 +208,7 @@ model Payment {
   
   amount          Float
   currency        String        @default("USD")
-  status          String        @default("PENDING") // "PENDING" | "PAID" | "REFUNDED" | "FAILED"
+  status          PaymentStatus @default(PENDING)
   paymentMethod   String        // "card", "paypal", "apple_pay", etc.
   
   // Stripe fields
@@ -235,7 +255,7 @@ model PortfolioItem {
   url       String
   thumbnail String?       // For videos
   caption   String?
-  tags      String?       // Comma-separated style tags
+  tags      String[]      @default([]) // Style tags
   
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
@@ -252,7 +272,7 @@ model Reel {
   thumbnail   String
   title       String
   description String?
-  tags        String?  // Comma-separated tags
+  tags        String[]  @default([])
   
   likes       Int           @default(0)
   views       Int           @default(0)
@@ -301,7 +321,7 @@ model Notification {
   type      String   // "booking_confirmed", "payment_received", "review_received", etc.
   title     String
   message   String
-  data      String?  // Additional data as JSON string
+  data      Json?    // Additional data as JSON
   
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())

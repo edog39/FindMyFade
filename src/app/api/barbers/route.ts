@@ -60,9 +60,7 @@ export async function GET(request: NextRequest) {
         price: s.price,
         duration: `${s.duration} min`
       })) || [],
-      availability: barber.barberProfile?.businessHours 
-        ? JSON.parse(barber.barberProfile.businessHours)
-        : {}
+      availability: barber.barberProfile?.businessHours || {}
     }))
 
     return NextResponse.json({ barbers: formattedBarbers })

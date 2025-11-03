@@ -43,8 +43,8 @@ export async function POST(request: NextRequest) {
         phone,
         firstName,
         lastName,
-        userType: userType.toUpperCase(),
-        preferences: preferences ? preferences.join(',') : null,
+        userType: userType.toUpperCase() as 'CLIENT' | 'BARBER',
+        preferences: preferences || [],
         walletBalance: userType === 'client' ? 100.0 : 0.0, // Give clients $100 starting balance
         loyaltyPoints: userType === 'client' ? 100 : 0,
         ...(userType === 'barber' && {
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
               instagram: '',
               website: '',
               pricing: '$$',
-              businessHours: JSON.stringify({
+              businessHours: {
                 monday: { enabled: true, start: '09:00', end: '18:00' },
                 tuesday: { enabled: true, start: '09:00', end: '18:00' },
                 wednesday: { enabled: true, start: '09:00', end: '18:00' },
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
                 friday: { enabled: true, start: '09:00', end: '18:00' },
                 saturday: { enabled: true, start: '09:00', end: '17:00' },
                 sunday: { enabled: false, start: '', end: '' }
-              }),
+              },
               services: {
                 create: [
                   { name: 'Haircut', price: 30, duration: 30 },
