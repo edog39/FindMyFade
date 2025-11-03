@@ -81,98 +81,80 @@ export default function SignUpPage() {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     console.log('🔥 HANDLE SUBMIT CALLED!')
     console.log('Form data:', formData)
     console.log('User type:', userType)
     
-    // Save user profile to localStorage
-    const userProfile = {
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      phone: formData.phone,
-      password: formData.password, // Save for login verification
-      userType: userType,
-      accountType: userType,
-      createdAt: new Date().toISOString(),
-      // Include gender and preferences if client
-      ...(userType === 'client' ? { 
-        gender: formData.gender || 'male',
-        preferences: formData.preferences 
-      } : {}),
-      ...(userType === 'barber' ? { 
-        shopName: formData.shopName,
-        experience: formData.experience,
-        specialties: formData.specialties,
-        address: formData.address,
-        bio: formData.bio,
-        verified: false
-      } : {})
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      alert('❌ Passwords do not match!')
+      return
     }
-    
-    // Save to localStorage
-    console.log('Saving user profile:', userProfile)
-    localStorage.setItem('userProfile', JSON.stringify(userProfile))
-    localStorage.setItem('isLoggedIn', 'true')
-    localStorage.setItem('userType', userType)
-    localStorage.setItem('hasVisitedBefore', 'true')
-    
-    if (userType === 'client' && formData.gender) {
-      localStorage.setItem('userGender', formData.gender)
-    }
-    
-    // If barber, add to discoverable barbers list
-    if (userType === 'barber') {
-      const userCreatedBarbers = JSON.parse(localStorage.getItem('userCreatedBarbers') || '[]')
-      const newBarber = {
-        id: Date.now(), // Unique ID
-        name: `${formData.firstName} ${formData.lastName}`,
-        shopName: formData.shopName || `${formData.firstName}'s Barber Shop`,
-        image: 'https://via.placeholder.com/400x300?text=Your+Shop',
-        rating: 5.0,
-        reviews: 0,
-        distance: 0.1, // New shop, show as nearby
-        price: '$$',
-        specialties: formData.specialties || ['Haircuts', 'Fades'],
-        verified: false,
-        promoted: false,
-        address: formData.address || 'Address not set',
-        city: 'Your City',
-        state: 'Your State',
-        phone: formData.phone || '',
-        instagram: '',
-        bio: formData.bio || 'Professional barber',
-        yearsExperience: formData.experience || '1+',
-        availability: [], // Will be set in dashboard
-        services: [
-          { id: 1, name: 'Haircut', price: 30, duration: '30 min' },
-          { id: 2, name: 'Haircut + Beard', price: 45, duration: '45 min' },
-          { id: 3, name: 'Kids Cut', price: 25, duration: '25 min' }
-        ]
+
+    try {
+      // Call signup API
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password,
+          userType: userType,
+          preferences: userType === 'client' ? formData.preferences : [],
+          shopName: userType === 'barber' ? formData.shopName : '',
+          experience: userType === 'barber' ? formData.experience : '',
+          specialties: userType === 'barber' ? formData.specialties : [],
+          address: userType === 'barber' ? formData.address : '',
+          bio: userType === 'barber' ? formData.bio : ''
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        alert(`❌ ${data.error || 'Failed to create account'}`)
+        return
       }
-      userCreatedBarbers.push(newBarber)
-      localStorage.setItem('userCreatedBarbers', JSON.stringify(userCreatedBarbers))
-      console.log('✅ Barber added to discoverable list:', newBarber)
-    }
-    
-    // Verify it was saved
-    const saved = localStorage.getItem('userProfile')
-    console.log('Verified saved profile:', saved)
-    
-    // Show success message
-    alert(`✅ Account created successfully! Welcome, ${formData.firstName}! 🎉`)
-    
-    // Redirect based on user type
-    setTimeout(() => {
-      if (userType === 'barber') {
-        router.push('/barber-dashboard')
-      } else {
-        router.push('/')
+
+      // Save to localStorage for session management
+      const userProfile = {
+        id: data.user.id,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        userType: userType,
+        accountType: userType,
+        preferences: formData.preferences,
+        barberProfileId: data.user.barberProfileId
       }
-    }, 100)
+
+      localStorage.setItem('userProfile', JSON.stringify(userProfile))
+      localStorage.setItem('isLoggedIn', 'true')
+      localStorage.setItem('userType', userType)
+      localStorage.setItem('hasVisitedBefore', 'true')
+
+      // Show success message
+      alert(`✅ Account created successfully! Welcome, ${formData.firstName}! 🎉`)
+
+      // Redirect based on user type
+      setTimeout(() => {
+        if (userType === 'barber') {
+          router.push('/barber-dashboard')
+        } else {
+          router.push('/')
+        }
+      }, 100)
+    } catch (error) {
+      console.error('Signup error:', error)
+      alert('❌ An error occurred during signup. Please try again.')
+    }
   }
 
   return (

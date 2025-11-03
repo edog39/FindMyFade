@@ -34,44 +34,57 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     setError('')
-    
-    // Simulate login process delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Check if user exists in localStorage
-    const savedProfile = localStorage.getItem('userProfile')
-    
-    if (savedProfile) {
-      const profile = JSON.parse(savedProfile)
-      
-      // Verify email and password match
-      if (profile.email === formData.email && profile.password === formData.password) {
-        // User authenticated! Keep them logged in
-        localStorage.setItem('isLoggedIn', 'true')
-        
+
+    try {
+      // Call login API
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error || 'Login failed')
         setIsLoading(false)
-        
-        // Show success and redirect
-        alert(`Welcome back, ${profile.firstName}! 🎉`)
-        
-        // Redirect based on user type
-        if (profile.userType === 'barber' || profile.accountType === 'barber') {
-          router.push('/barber-dashboard')
-        } else {
-          router.push('/')
-        }
-      } else if (profile.email === formData.email) {
-        // Email matches but password doesn't
-        setError('Incorrect password. Please try again.')
-        setIsLoading(false)
-      } else {
-        // Email doesn't match
-        setError('No account found with this email. Please sign up first.')
-        setIsLoading(false)
+        return
       }
-    } else {
-      // No user profile found
-      setError('No account found. Please sign up first.')
+
+      // Save to localStorage for session management
+      const userProfile = {
+        id: data.user.id,
+        firstName: data.user.firstName,
+        lastName: data.user.lastName,
+        email: data.user.email,
+        phone: data.user.phone,
+        userType: data.user.userType.toLowerCase(),
+        accountType: data.user.userType.toLowerCase(),
+        preferences: data.user.preferences || [],
+        barberProfileId: data.user.barberProfile?.id
+      }
+
+      localStorage.setItem('userProfile', JSON.stringify(userProfile))
+      localStorage.setItem('isLoggedIn', 'true')
+      localStorage.setItem('userType', data.user.userType.toLowerCase())
+
+      setIsLoading(false)
+
+      // Show success and redirect
+      alert(`Welcome back, ${data.user.firstName}! 🎉`)
+
+      // Redirect based on user type
+      if (data.user.userType === 'BARBER') {
+        router.push('/barber-dashboard')
+      } else {
+        router.push('/')
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      setError('An error occurred during login. Please try again.')
       setIsLoading(false)
     }
   }

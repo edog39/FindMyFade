@@ -123,38 +123,29 @@ export default function DiscoverPage() {
 
   const specialties = ["Fade", "Beard Trim", "Classic Cuts", "Modern Fades", "Hair Design", "Straight Razor", "Hot Towel Shave", "Mustache Styling", "Creative Cuts", "Color", "Styling"]
 
-  // Load user-created barbers and combine with default barbers
+  // Load all barbers from database
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const userCreatedBarbers = JSON.parse(localStorage.getItem('userCreatedBarbers') || '[]')
-      console.log('🔍 Loading user-created barbers:', userCreatedBarbers)
-      
-      const formattedUserBarbers = userCreatedBarbers.map((barber: any) => ({
-        id: barber.id,
-        name: barber.shopName,
-        rating: barber.rating,
-        reviews: barber.reviews,
-        distance: barber.distance,
-        image: barber.image,
-        specialties: barber.specialties,
-        price: barber.price,
-        nextAvailable: barber.nextAvailable || 'Available',
-        address: barber.address,
-        phone: barber.phone,
-        verified: barber.verified,
-        promoted: barber.promoted,
-        city: barber.city,
-        state: barber.state
-      }))
-      
-      console.log('🔍 Formatted user barbers:', formattedUserBarbers)
-      
-      // Combine user-created barbers with default ones (user barbers first)
-      const combined = [...formattedUserBarbers, ...allBarbers]
-      console.log('🔍 Combined barbers count:', combined.length, 'User:', formattedUserBarbers.length, 'Default:', allBarbers.length)
-      
-      setCombinedBarbers(combined)
-      setDisplayBarbers(combined)
+    const fetchBarbers = async () => {
+      try {
+        const response = await fetch('/api/barbers')
+        const data = await response.json()
+        
+        if (response.ok && data.barbers) {
+          console.log('🔍 Loaded barbers from database:', data.barbers.length)
+          
+          // Combine database barbers with default mock barbers
+          const combined = [...data.barbers, ...allBarbers]
+          console.log('🔍 Total barbers:', combined.length)
+          
+          setCombinedBarbers(combined)
+          setDisplayBarbers(combined)
+        }
+      } catch (error) {
+        console.error('Error fetching barbers:', error)
+        // Fallback to default barbers
+        setCombinedBarbers(allBarbers)
+        setDisplayBarbers(allBarbers)
+      }
       
       // Load client preferences
       const userProfile = localStorage.getItem('userProfile')
@@ -165,6 +156,8 @@ export default function DiscoverPage() {
         }
       }
     }
+
+    fetchBarbers()
   }, [])
 
   // Load nearby barbers if in nearby mode
@@ -444,13 +437,11 @@ export default function DiscoverPage() {
               {sortedBarbers.length} barbers found
             </h2>
             {(() => {
-              const userCreatedCount = typeof window !== 'undefined' 
-                ? JSON.parse(localStorage.getItem('userCreatedBarbers') || '[]').length 
-                : 0
-              if (userCreatedCount > 0) {
+              const dbBarbers = combinedBarbers.filter(b => !allBarbers.some(ab => ab.id === b.id))
+              if (dbBarbers.length > 0) {
                 return (
                   <p className="text-sm text-accent-400">
-                    ✨ Including {userCreatedCount} newly registered barber{userCreatedCount > 1 ? 's' : ''}
+                    ✨ Including {dbBarbers.length} registered barber{dbBarbers.length > 1 ? 's' : ''} from database
                   </p>
                 )
               }
@@ -460,46 +451,33 @@ export default function DiscoverPage() {
             {typeof window !== 'undefined' && (
               <div className="flex gap-3 mt-2">
                 <button
-                  onClick={() => {
-                    const barbers = JSON.parse(localStorage.getItem('userCreatedBarbers') || '[]')
-                    console.log('📊 User Created Barbers:', barbers)
+                  onClick={async () => {
+                    const response = await fetch('/api/barbers')
+                    const data = await response.json()
+                    console.log('📊 Database Barbers:', data.barbers)
                     console.log('📊 Combined Barbers:', combinedBarbers.slice(0, 5))
                     console.log('📊 Display Barbers:', displayBarbers.slice(0, 5))
-                    alert(`Found ${barbers.length} user-created barbers in localStorage. Check console for details.`)
+                    alert(`Found ${data.barbers.length} barbers in database. Check console for details.`)
                   }}
                   className="text-xs text-primary-400 hover:text-accent-400 underline"
                 >
-                  🔍 Debug: Check User-Created Barbers
+                  🔍 Debug: Check Database
                 </button>
                 <button
-                  onClick={() => {
-                    // Force reload barbers from localStorage
-                    const userCreatedBarbers = JSON.parse(localStorage.getItem('userCreatedBarbers') || '[]')
-                    const formattedUserBarbers = userCreatedBarbers.map((barber: any) => ({
-                      id: barber.id,
-                      name: barber.shopName,
-                      rating: barber.rating,
-                      reviews: barber.reviews,
-                      distance: barber.distance,
-                      image: barber.image,
-                      specialties: barber.specialties,
-                      price: barber.price,
-                      nextAvailable: barber.nextAvailable || 'Available',
-                      address: barber.address,
-                      phone: barber.phone,
-                      verified: barber.verified,
-                      promoted: barber.promoted,
-                      city: barber.city,
-                      state: barber.state
-                    }))
-                    const combined = [...formattedUserBarbers, ...allBarbers]
-                    setCombinedBarbers(combined)
-                    setDisplayBarbers(combined)
-                    alert(`Refreshed! Loaded ${userCreatedBarbers.length} user-created barbers.`)
+                  onClick={async () => {
+                    // Force reload from API
+                    const response = await fetch('/api/barbers')
+                    const data = await response.json()
+                    if (data.barbers) {
+                      const combined = [...data.barbers, ...allBarbers]
+                      setCombinedBarbers(combined)
+                      setDisplayBarbers(combined)
+                      alert(`Refreshed! Loaded ${data.barbers.length} barbers from database.`)
+                    }
                   }}
                   className="text-xs text-accent-400 hover:text-accent-300 underline font-medium"
                 >
-                  🔄 Refresh Barbers List
+                  🔄 Refresh from Database
                 </button>
               </div>
             )}
@@ -513,11 +491,8 @@ export default function DiscoverPage() {
         {/* Barber Cards */}
         <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
           {sortedBarbers.map(barber => {
-            // Check if this is a user-created barber
-            const userCreatedBarbers = typeof window !== 'undefined' 
-              ? JSON.parse(localStorage.getItem('userCreatedBarbers') || '[]')
-              : []
-            const isNewBarber = userCreatedBarbers.some((b: any) => b.id === barber.id)
+            // Check if this is a database barber (not in default mock data)
+            const isNewBarber = !allBarbers.some(ab => ab.id === barber.id)
             
             return (
             <div key={barber.id} className={`card group hover:scale-105 transition-all duration-200 ${barber.promoted ? 'ring-2 ring-accent-500' : isNewBarber ? 'ring-2 ring-green-500/50' : ''}`}>
