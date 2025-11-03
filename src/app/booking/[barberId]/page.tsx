@@ -35,7 +35,7 @@ function generateAvailability(barberId: number) {
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
     
     // Generate time slots based on business hours
-    const slots = []
+    const slots: { time: string; available: boolean; booked: boolean }[] = []
     const startHour = isWeekend ? 10 : 9
     const endHour = isWeekend ? 18 : 20
     

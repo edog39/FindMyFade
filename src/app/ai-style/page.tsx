@@ -1564,7 +1564,7 @@ export default function AIStylePage() {
                               />
                             ) : (
                               <img 
-                                src={uploadedImage} 
+                                src={uploadedImage || ''} 
                                 alt="Your photo" 
                                 className="w-full h-full object-cover"
                               />
@@ -1781,7 +1781,7 @@ export default function AIStylePage() {
                       <div className="mb-4">
                         <p className="text-primary-400 text-xs font-semibold mb-2">Specialties:</p>
                         <div className="flex flex-wrap gap-1">
-                          {barber.specialties.slice(0, 3).map((specialty, idx) => (
+                          {barber.specialties.slice(0, 3).map((specialty: string, idx: number) => (
                             <span 
                               key={idx} 
                               className="bg-accent-500/20 text-accent-400 text-xs px-2 py-1 rounded-full border border-accent-500/30"

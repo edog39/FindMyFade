@@ -16,7 +16,7 @@ import {
   Calendar,
   ChevronLeft,
   TrendingUp,
-  Fire,
+  Flame,
   Search,
   Filter
 } from 'lucide-react'
@@ -326,32 +326,32 @@ export default function ShowcasePage() {
               <div className="flex items-center space-x-3 mb-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-primary-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-medium">
-                    {currentReel.barber.name.split(' ').map(n => n[0]).join('')}
+                    {videos[currentVideoIndex].barber.name.split(' ').map(n => n[0]).join('')}
                   </span>
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-white font-semibold">{currentReel.barber.username}</span>
-                    {currentReel.barber.verified && (
+                    <span className="text-white font-semibold">{videos[currentVideoIndex].barber.username}</span>
+                    {videos[currentVideoIndex].barber.verified && (
                       <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
                         <span className="text-white text-xs">✓</span>
                       </div>
                     )}
-                    {currentReel.trending && (
+                    {videos[currentVideoIndex].trending && (
                       <div className="flex items-center space-x-1 bg-red-500 px-2 py-1 rounded-full">
-                        <Fire size={10} className="text-white" />
+                        <Flame size={10} className="text-white" />
                         <span className="text-white text-xs">Trending</span>
                       </div>
                     )}
                   </div>
                   <div className="flex items-center space-x-2 text-gray-300 text-sm">
-                    <span>{currentReel.barber.shopName}</span>
+                    <span>{videos[currentVideoIndex].barber.shopName}</span>
                     <span>•</span>
-                    <span>{currentReel.createdAt}</span>
+                    <span>{videos[currentVideoIndex].createdAt}</span>
                   </div>
                 </div>
                 <Link 
-                  href={`/barber/${currentReel.barber.id}`}
+                  href={`/barber/${videos[currentVideoIndex].barber.id}`}
                   className="btn-primary text-sm px-4 py-2"
                 >
                   Book Now
@@ -361,20 +361,20 @@ export default function ShowcasePage() {
               {/* Description */}
               <div className="mb-3">
                 <p className="text-white text-sm leading-relaxed">
-                  {currentReel.description}
+                  {videos[currentVideoIndex].description}
                 </p>
               </div>
 
               {/* Music */}
               <div className="flex items-center space-x-2 text-gray-300 text-sm">
                 <div className="w-4 h-4 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full animate-spin"></div>
-                <span>{currentReel.music}</span>
+                <span>{videos[currentVideoIndex].music}</span>
               </div>
 
               {/* Location */}
               <div className="flex items-center space-x-1 text-gray-400 text-xs mt-1">
                 <MapPin size={12} />
-                <span>{currentReel.barber.location}</span>
+                <span>{videos[currentVideoIndex].barber.location}</span>
               </div>
             </div>
 
@@ -383,20 +383,20 @@ export default function ShowcasePage() {
               {/* Like */}
               <div className="text-center">
                 <button
-                  onClick={() => handleLike(currentReel.id)}
+                  onClick={() => handleLike(videos[currentVideoIndex].id)}
                   className="w-12 h-12 bg-black/50 rounded-full flex items-center justify-center hover:bg-black/70 transition-colors group"
                 >
                   <Heart 
                     size={24} 
                     className={`transition-colors ${
-                      currentReel.isLiked 
+                      videos[currentVideoIndex].isLiked 
                         ? 'text-red-500 fill-red-500' 
                         : 'text-white group-hover:text-red-400'
                     }`} 
                   />
                 </button>
                 <span className="text-white text-xs font-medium mt-1 block">
-                  {currentReel.likes.toLocaleString()}
+                  {videos[currentVideoIndex].likes.toLocaleString()}
                 </span>
               </div>
 
@@ -406,7 +406,7 @@ export default function ShowcasePage() {
                   <MessageCircle size={24} className="text-white" />
                 </button>
                 <span className="text-white text-xs font-medium mt-1 block">
-                  {currentReel.comments}
+                  {videos[currentVideoIndex].comments}
                 </span>
               </div>
 
@@ -416,27 +416,27 @@ export default function ShowcasePage() {
                   <Share size={24} className="text-white" />
                 </button>
                 <span className="text-white text-xs font-medium mt-1 block">
-                  {currentReel.shares}
+                  {videos[currentVideoIndex].shares}
                 </span>
               </div>
 
               {/* Bookmark */}
               <div className="text-center">
                 <button
-                  onClick={() => handleBookmark(currentReel.id)}
+                  onClick={() => handleBookmark(videos[currentVideoIndex].id)}
                   className="w-12 h-12 bg-black/50 rounded-full flex items-center justify-center hover:bg-black/70 transition-colors group"
                 >
                   <Bookmark 
                     size={24} 
                     className={`transition-colors ${
-                      currentReel.isBookmarked 
+                      videos[currentVideoIndex].isBookmarked 
                         ? 'text-accent-400 fill-accent-400' 
                         : 'text-white group-hover:text-accent-400'
                     }`} 
                   />
                 </button>
                 <span className="text-white text-xs font-medium mt-1 block">
-                  {currentReel.bookmarks}
+                  {videos[currentVideoIndex].bookmarks}
                 </span>
               </div>
 
