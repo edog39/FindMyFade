@@ -69,6 +69,9 @@ export default function Home() {
                 <Link href="/appointments" className="text-primary-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
                   My Appointments
                 </Link>
+                <Link href="/feedback" className="text-primary-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
+                  Feedback
+                </Link>
                 <Link href="/login" className="btn-secondary">
                   Sign In
                 </Link>
@@ -111,6 +114,9 @@ export default function Home() {
               </Link>
               <Link href="/appointments" className="text-primary-300 hover:text-white block px-3 py-2 text-base font-medium">
                 My Appointments
+              </Link>
+              <Link href="/feedback" className="text-primary-300 hover:text-white block px-3 py-2 text-base font-medium">
+                Feedback
               </Link>
               <Link href="/login" className="text-primary-300 hover:text-white block px-3 py-2 text-base font-medium">
                 Sign In
