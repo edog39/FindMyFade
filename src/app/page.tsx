@@ -255,12 +255,12 @@ export default function Home() {
                   </div>
                 ) : (
                   <>
-                    <Link href="/login" className="btn-secondary">
-                      Sign In
-                    </Link>
-                    <Link href="/signup" className="btn-primary">
-                      Get Started
-                    </Link>
+                <Link href="/login" className="btn-secondary">
+                  Sign In
+                </Link>
+                <Link href="/signup" className="btn-primary">
+                  Get Started
+                </Link>
                   </>
                 )}
               </div>
@@ -353,12 +353,12 @@ export default function Home() {
                 </>
               ) : (
                 <>
-                  <Link href="/login" className="text-primary-300 hover:text-white block px-3 py-2 text-base font-medium">
-                    Sign In
-                  </Link>
-                  <Link href="/signup" className="btn-primary block text-center mx-3 my-2">
-                    Get Started
-                  </Link>
+              <Link href="/login" className="text-primary-300 hover:text-white block px-3 py-2 text-base font-medium">
+                Sign In
+              </Link>
+              <Link href="/signup" className="btn-primary block text-center mx-3 my-2">
+                Get Started
+              </Link>
                 </>
               )}
             </div>
@@ -733,29 +733,29 @@ export default function Home() {
               <h3 className="font-semibold text-white mb-4">For Clients</h3>
               <ul className="space-y-2 text-primary-400">
                 <li><Link href="/discover" className="hover:text-white transition-colors">Find Barbers</Link></li>
-                <li><Link href="/styles" className="hover:text-white transition-colors">Style Guide</Link></li>
-                <li><Link href="/booking" className="hover:text-white transition-colors">Book Now</Link></li>
-                <li><Link href="/rewards" className="hover:text-white transition-colors">Rewards Program</Link></li>
+                <li><Link href="/ai-style" className="hover:text-white transition-colors">AI Style Match</Link></li>
+                <li><Link href="/appointments" className="hover:text-white transition-colors">My Appointments</Link></li>
+                <li><Link href="/wallet" className="hover:text-white transition-colors">Wallet & Rewards</Link></li>
               </ul>
             </div>
             
             <div>
               <h3 className="font-semibold text-white mb-4">For Barbers</h3>
               <ul className="space-y-2 text-primary-400">
-                <li><Link href="/barbers/signup" className="hover:text-white transition-colors">Join Platform</Link></li>
-                <li><Link href="/barbers/features" className="hover:text-white transition-colors">Features</Link></li>
-                <li><Link href="/barbers/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
-                <li><Link href="/barbers/support" className="hover:text-white transition-colors">Support</Link></li>
+                <li><Link href="/signup?type=barber" className="hover:text-white transition-colors">Join Platform</Link></li>
+                <li><Link href="/barber-dashboard" className="hover:text-white transition-colors">Dashboard</Link></li>
+                <li><Link href="/showcase" className="hover:text-white transition-colors">Showcase</Link></li>
+                <li><Link href="/feedback" className="hover:text-white transition-colors">Support</Link></li>
               </ul>
             </div>
             
             <div>
               <h3 className="font-semibold text-white mb-4">Company</h3>
               <ul className="space-y-2 text-primary-400">
-                <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
-                <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
-                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+                <li><Link href="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
+                <li><Link href="/feedback" className="hover:text-white transition-colors">Contact Us</Link></li>
+                <li><Link href="/map" className="hover:text-white transition-colors">Explore Map</Link></li>
+                <li><Link href="/discover" className="hover:text-white transition-colors">Browse All Barbers</Link></li>
               </ul>
             </div>
           </div>
