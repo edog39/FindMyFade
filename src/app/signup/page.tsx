@@ -68,6 +68,10 @@ export default function SignUpPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
+    console.log('🔥 HANDLE SUBMIT CALLED!')
+    console.log('Form data:', formData)
+    console.log('User type:', userType)
+    
     // Save user profile to localStorage
     const userProfile = {
       firstName: formData.firstName,
