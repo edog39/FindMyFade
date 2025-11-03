@@ -25,7 +25,6 @@ export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [searchType, setSearchType] = useState<'location' | 'barber' | 'style'>('location')
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userName, setUserName] = useState('')
   const [userType, setUserType] = useState('')
@@ -61,8 +60,8 @@ export default function Home() {
       }
       
       if (!hasVisited && !storedUserType && !userProfile) {
-        // First time visitor - show welcome modal
-        setShowWelcomeModal(true)
+        // First time visitor - redirect to welcome page
+        router.push('/welcome')
       }
     }
   }, [])
@@ -103,24 +102,6 @@ export default function Home() {
     window.location.href = `/discover?${params.toString()}`
   }
 
-  const handleUserTypeSelection = (type: 'client' | 'barber', action: 'login' | 'signup') => {
-    // Save user type to localStorage
-    localStorage.setItem('userType', type)
-    localStorage.setItem('hasVisitedBefore', 'true')
-    setShowWelcomeModal(false)
-    
-    // Redirect to appropriate page
-    if (action === 'signup') {
-      router.push(`/signup?type=${type}`)
-    } else {
-      router.push(`/login?type=${type}`)
-    }
-  }
-
-  const handleSkip = () => {
-    localStorage.setItem('hasVisitedBefore', 'true')
-    setShowWelcomeModal(false)
-  }
 
   const handleLogout = () => {
     if (confirm('Are you sure you want to logout?')) {
