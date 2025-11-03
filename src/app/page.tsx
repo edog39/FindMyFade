@@ -38,7 +38,10 @@ export default function Home() {
       const storedUserType = localStorage.getItem('userType')
       const userProfile = localStorage.getItem('userProfile')
       
-      if (userProfile) {
+      // Check if user is logged in
+      const loggedIn = localStorage.getItem('isLoggedIn') === 'true'
+      
+      if (userProfile && loggedIn) {
         const profile = JSON.parse(userProfile)
         setIsLoggedIn(true)
         // Get name from signup fields (firstName + lastName)
@@ -103,8 +106,9 @@ export default function Home() {
 
   const handleLogout = () => {
     if (confirm('Are you sure you want to logout?')) {
-      localStorage.removeItem('userProfile')
-      localStorage.removeItem('userType')
+      // Only remove login status, keep user profile for re-login
+      localStorage.removeItem('isLoggedIn')
+      // Don't delete userProfile - keep it so they can login again!
       setIsLoggedIn(false)
       setUserName('')
       setUserType('')
