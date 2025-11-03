@@ -77,6 +77,7 @@ export default function SignUpPage() {
       password: formData.password, // Save for login verification
       userType: userType,
       accountType: userType,
+      createdAt: new Date().toISOString(),
       ...(userType === 'client' && formData.gender ? { gender: formData.gender } : {}),
       ...(userType === 'barber' ? { 
         shopName: formData.shopName,
@@ -88,18 +89,28 @@ export default function SignUpPage() {
       } : {})
     }
     
+    // Save to localStorage
+    console.log('Saving user profile:', userProfile)
     localStorage.setItem('userProfile', JSON.stringify(userProfile))
     localStorage.setItem('isLoggedIn', 'true')
+    localStorage.setItem('userType', userType)
+    localStorage.setItem('hasVisitedBefore', 'true')
     
     if (userType === 'client' && formData.gender) {
       localStorage.setItem('userGender', formData.gender)
     }
     
-    // Handle form submission
-    console.log('Form submitted:', { userType, ...formData })
+    // Verify it was saved
+    const saved = localStorage.getItem('userProfile')
+    console.log('Verified saved profile:', saved)
+    
+    // Show success message
+    alert(`✅ Account created successfully! Welcome, ${formData.firstName}! 🎉`)
     
     // Redirect to home after signup
-    router.push('/')
+    setTimeout(() => {
+      router.push('/')
+    }, 100)
   }
 
   return (
