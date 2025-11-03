@@ -119,7 +119,7 @@ export default function DiscoverPage() {
   const [displayBarbers, setDisplayBarbers] = useState(allBarbers)
   const [combinedBarbers, setCombinedBarbers] = useState(allBarbers)
   const [clientPreferences, setClientPreferences] = useState<string[]>([])
-  const [matchedBarbersOnly, setMatchedBarbersOnly] = useState(true)
+  const [matchedBarbersOnly, setMatchedBarbersOnly] = useState(false) // Default to showing all barbers
 
   const specialties = ["Fade", "Beard Trim", "Classic Cuts", "Modern Fades", "Hair Design", "Straight Razor", "Hot Towel Shave", "Mustache Styling", "Creative Cuts", "Color", "Styling"]
 
@@ -433,9 +433,24 @@ export default function DiscoverPage() {
       {/* Results */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="font-semibold text-white">
-            {sortedBarbers.length} barbers found
-          </h2>
+          <div>
+            <h2 className="font-semibold text-white mb-1">
+              {sortedBarbers.length} barbers found
+            </h2>
+            {(() => {
+              const userCreatedCount = typeof window !== 'undefined' 
+                ? JSON.parse(localStorage.getItem('userCreatedBarbers') || '[]').length 
+                : 0
+              if (userCreatedCount > 0) {
+                return (
+                  <p className="text-sm text-accent-400">
+                    ✨ Including {userCreatedCount} newly registered barber{userCreatedCount > 1 ? 's' : ''}
+                  </p>
+                )
+              }
+              return null
+            })()}
+          </div>
           <div className="flex items-center space-x-2 text-primary-300">
             <Navigation size={16} />
             <span>Downtown Area</span>
@@ -444,13 +459,27 @@ export default function DiscoverPage() {
 
         {/* Barber Cards */}
         <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
-          {sortedBarbers.map(barber => (
-            <div key={barber.id} className={`card group hover:scale-105 transition-all duration-200 ${barber.promoted ? 'ring-2 ring-accent-500' : ''}`}>
-              {barber.promoted && (
-                <div className="bg-accent-500 text-black text-xs font-semibold px-2 py-1 rounded-full mb-3 inline-block">
-                  PROMOTED
-                </div>
-              )}
+          {sortedBarbers.map(barber => {
+            // Check if this is a user-created barber
+            const userCreatedBarbers = typeof window !== 'undefined' 
+              ? JSON.parse(localStorage.getItem('userCreatedBarbers') || '[]')
+              : []
+            const isNewBarber = userCreatedBarbers.some((b: any) => b.id === barber.id)
+            
+            return (
+            <div key={barber.id} className={`card group hover:scale-105 transition-all duration-200 ${barber.promoted ? 'ring-2 ring-accent-500' : isNewBarber ? 'ring-2 ring-green-500/50' : ''}`}>
+              <div className="flex gap-2 mb-3">
+                {barber.promoted && (
+                  <div className="bg-accent-500 text-black text-xs font-semibold px-2 py-1 rounded-full inline-block">
+                    PROMOTED
+                  </div>
+                )}
+                {isNewBarber && (
+                  <div className="bg-green-500 text-black text-xs font-semibold px-2 py-1 rounded-full inline-block">
+                    ✨ NEW
+                  </div>
+                )}
+              </div>
               
               <div className="relative mb-4">
                 <div className="w-full h-48 bg-gradient-to-br from-primary-700 to-primary-600 rounded-lg flex items-center justify-center">
