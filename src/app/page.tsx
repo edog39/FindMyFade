@@ -770,17 +770,18 @@ export default function Home() {
 
       {/* Welcome Modal - First Time Visitors */}
       {showWelcomeModal && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 rounded-3xl max-w-2xl w-full p-8 border-2 border-accent-500/30 shadow-2xl animate-fade-in my-8 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] overflow-y-auto">
+          <div className="min-h-full flex items-center justify-center p-4 py-8">
+            <div className="bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 rounded-3xl max-w-2xl w-full p-6 md:p-8 border-2 border-accent-500/30 shadow-2xl animate-fade-in">
             {/* Header */}
-            <div className="text-center mb-8">
-              <div className="w-20 h-20 bg-gradient-to-br from-accent-400 to-accent-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-4xl">💈</span>
+            <div className="text-center mb-6 md:mb-8">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-accent-400 to-accent-600 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
+                <span className="text-3xl md:text-4xl">💈</span>
               </div>
-              <h1 className="font-display font-bold text-4xl text-white mb-3">
+              <h1 className="font-display font-bold text-2xl md:text-4xl text-white mb-2 md:mb-3">
                 Welcome to FindMyFade!
               </h1>
-              <p className="text-primary-300 text-base md:text-lg">
+              <p className="text-primary-300 text-sm md:text-base">
                 Choose your experience or continue as a guest
               </p>
             </div>
@@ -799,16 +800,16 @@ export default function Home() {
                   </p>
                 </div>
                 
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3">
                   <button
                     onClick={() => handleUserTypeSelection('client', 'signup')}
-                    className="w-full btn-primary py-3 text-center"
+                    className="w-full btn-primary py-2.5 md:py-3 text-center text-sm md:text-base"
                   >
                     Sign Up as Client
                   </button>
                   <button
                     onClick={() => handleUserTypeSelection('client', 'login')}
-                    className="w-full btn-secondary py-3 text-center"
+                    className="w-full btn-secondary py-2.5 md:py-3 text-center text-sm md:text-base"
                   >
                     Sign In
                   </button>
@@ -827,16 +828,16 @@ export default function Home() {
                   </p>
                 </div>
                 
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3">
                   <button
                     onClick={() => handleUserTypeSelection('barber', 'signup')}
-                    className="w-full bg-gradient-to-r from-accent-400 to-accent-600 hover:from-accent-500 hover:to-accent-700 text-black font-semibold py-3 rounded-lg transition-all"
+                    className="w-full bg-accent-500 hover:bg-accent-600 text-black font-semibold py-2.5 md:py-3 rounded-lg transition-all text-sm md:text-base"
                   >
                     Sign Up as Barber
                   </button>
                   <button
                     onClick={() => handleUserTypeSelection('barber', 'login')}
-                    className="w-full btn-secondary py-3 text-center"
+                    className="w-full btn-secondary py-2.5 md:py-3 text-center text-sm md:text-base"
                   >
                     Sign In
                   </button>
@@ -848,12 +849,12 @@ export default function Home() {
             <div className="text-center">
               <button
                 onClick={handleSkip}
-                className="w-full bg-primary-700/50 hover:bg-primary-600/50 border-2 border-primary-600 hover:border-primary-500 text-white font-medium py-3 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
+                className="w-full bg-primary-700/50 hover:bg-primary-600/50 border-2 border-primary-600 hover:border-primary-500 text-white font-medium py-2.5 md:py-3 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 text-sm md:text-base"
               >
-                <Users size={20} />
+                <Users size={18} className="md:w-5 md:h-5" />
                 <span>Continue as Guest</span>
               </button>
-              <p className="text-primary-500 text-xs mt-2">
+              <p className="text-primary-500 text-[10px] md:text-xs mt-2">
                 Browse without creating an account
               </p>
             </div>
@@ -878,6 +879,7 @@ export default function Home() {
                   <div className="text-primary-400 text-[10px] md:text-xs">To Get Started</div>
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </div>
