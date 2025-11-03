@@ -23,21 +23,51 @@ export default function LoginPage() {
     rememberMe: false
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+    setError('') // Clear error when user types
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError('')
     
-    // Simulate login process
-    setTimeout(() => {
+    // Simulate login process delay
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    // Check if user exists in localStorage
+    const savedProfile = localStorage.getItem('userProfile')
+    
+    if (savedProfile) {
+      const profile = JSON.parse(savedProfile)
+      
+      // Verify email and password match
+      if (profile.email === formData.email && profile.password === formData.password) {
+        // User authenticated! Keep them logged in
+        localStorage.setItem('isLoggedIn', 'true')
+        
+        setIsLoading(false)
+        
+        // Show success and redirect
+        alert(`Welcome back, ${profile.firstName}! 🎉`)
+        router.push('/')
+      } else if (profile.email === formData.email) {
+        // Email matches but password doesn't
+        setError('Incorrect password. Please try again.')
+        setIsLoading(false)
+      } else {
+        // Email doesn't match
+        setError('No account found with this email. Please sign up first.')
+        setIsLoading(false)
+      }
+    } else {
+      // No user profile found
+      setError('No account found. Please sign up first.')
       setIsLoading(false)
-      console.log('Login submitted:', formData)
-      // Handle login logic here
-    }, 2000)
+    }
   }
 
   return (
@@ -71,6 +101,13 @@ export default function LoginPage() {
         {/* Login Form */}
         <div className="card">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+                <p className="text-red-400 text-sm">{error}</p>
+              </div>
+            )}
+            
             {/* Email */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

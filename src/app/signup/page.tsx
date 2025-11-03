@@ -67,20 +67,37 @@ export default function SignUpPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Save user preferences to localStorage
+    
+    // Save user profile to localStorage
+    const userProfile = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      phone: formData.phone,
+      password: formData.password, // Save for login verification
+      userType: userType,
+      accountType: userType,
+      ...(userType === 'client' && formData.gender ? { gender: formData.gender } : {}),
+      ...(userType === 'barber' ? { 
+        shopName: formData.shopName,
+        experience: formData.experience,
+        specialties: formData.specialties,
+        address: formData.address,
+        bio: formData.bio,
+        verified: false
+      } : {})
+    }
+    
+    localStorage.setItem('userProfile', JSON.stringify(userProfile))
+    localStorage.setItem('isLoggedIn', 'true')
+    
     if (userType === 'client' && formData.gender) {
       localStorage.setItem('userGender', formData.gender)
-      localStorage.setItem('userProfile', JSON.stringify({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
-        gender: formData.gender,
-        userType: 'client'
-      }))
     }
+    
     // Handle form submission
     console.log('Form submitted:', { userType, ...formData })
+    
     // Redirect to home after signup
     router.push('/')
   }
