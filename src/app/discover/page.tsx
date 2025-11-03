@@ -434,8 +434,8 @@ export default function DiscoverPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="font-semibold text-white mb-1">
-              {sortedBarbers.length} barbers found
-            </h2>
+            {sortedBarbers.length} barbers found
+          </h2>
             {(() => {
               const dbBarbers = combinedBarbers.filter(b => !allBarbers.some(ab => ab.id === b.id))
               if (dbBarbers.length > 0) {
@@ -497,11 +497,11 @@ export default function DiscoverPage() {
             return (
             <div key={barber.id} className={`card group hover:scale-105 transition-all duration-200 ${barber.promoted ? 'ring-2 ring-accent-500' : isNewBarber ? 'ring-2 ring-green-500/50' : ''}`}>
               <div className="flex gap-2 mb-3">
-                {barber.promoted && (
+              {barber.promoted && (
                   <div className="bg-accent-500 text-black text-xs font-semibold px-2 py-1 rounded-full inline-block">
-                    PROMOTED
-                  </div>
-                )}
+                  PROMOTED
+                </div>
+              )}
                 {isNewBarber && (
                   <div className="bg-green-500 text-black text-xs font-semibold px-2 py-1 rounded-full inline-block">
                     ✨ NEW

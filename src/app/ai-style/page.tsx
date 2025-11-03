@@ -651,7 +651,7 @@ export default function AIStylePage() {
           clearInterval(analysisInterval)
           return 100
         }
-        return prev + 10
+        return Math.min(prev + 10, 100) // Cap at 100%
       })
     }, 200)
 
@@ -691,7 +691,7 @@ export default function AIStylePage() {
           clearInterval(searchInterval)
           return 100
         }
-        return prev + 15
+        return Math.min(prev + 15, 100) // Cap at 100%
       })
     }, 250)
 
