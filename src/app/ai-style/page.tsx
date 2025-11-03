@@ -1091,10 +1091,6 @@ export default function AIStylePage() {
                     <Play className="w-5 h-5 mr-2" />
                     Choose Video
                   </button>
-                  <button className="btn-secondary px-6 py-3">
-                    <Camera className="w-5 h-5 mr-2" />
-                    Take Photo
-                  </button>
                 </div>
 
                 <input
