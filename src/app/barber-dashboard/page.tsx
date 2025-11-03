@@ -210,7 +210,7 @@ export default function BarberDashboardPage() {
   const handleLogout = () => {
     if (confirm('Are you sure you want to logout?')) {
       localStorage.removeItem('isLoggedIn')
-      router.push('/login')
+      router.push('/')
     }
   }
 
