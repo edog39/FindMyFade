@@ -551,7 +551,8 @@ export default function DiscoverPage() {
                 </button>
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
 
         {/* Load More */}
