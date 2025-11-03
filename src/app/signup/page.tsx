@@ -82,7 +82,8 @@ export default function SignUpPage() {
       userType: userType,
       accountType: userType,
       createdAt: new Date().toISOString(),
-      ...(userType === 'client' && formData.gender ? { gender: formData.gender } : {}),
+      // Include gender if provided, otherwise default to 'male' for clients
+      ...(userType === 'client' ? { gender: formData.gender || 'male' } : {}),
       ...(userType === 'barber' ? { 
         shopName: formData.shopName,
         experience: formData.experience,
