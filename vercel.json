@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd findmyfade && npm run build",
+  "outputDirectory": "findmyfade/.next",
+  "installCommand": "cd findmyfade && npm install"
+}
