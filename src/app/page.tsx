@@ -768,115 +768,81 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* Welcome Modal - First Time Visitors */}
+      {/* Welcome Modal - Sign In First */}
       {showWelcomeModal && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] overflow-y-auto">
           <div className="min-h-full flex items-center justify-center p-4 py-8">
-            <div className="bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 rounded-3xl max-w-2xl w-full p-6 md:p-8 border-2 border-accent-500/30 shadow-2xl animate-fade-in">
+            <div className="bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 rounded-3xl max-w-md w-full p-6 md:p-8 border-2 border-accent-500/30 shadow-2xl animate-fade-in">
             {/* Header */}
-            <div className="text-center mb-6 md:mb-8">
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-accent-400 to-accent-600 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-accent-400 to-accent-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl md:text-4xl">💈</span>
               </div>
-              <h1 className="font-display font-bold text-2xl md:text-4xl text-white mb-2 md:mb-3">
+              <h1 className="font-display font-bold text-2xl md:text-3xl text-white mb-2">
                 Welcome to FindMyFade!
               </h1>
-              <p className="text-primary-300 text-sm md:text-base">
-                Choose your experience or continue as a guest
+              <p className="text-primary-300 text-sm">
+                Sign in to unlock all features
               </p>
             </div>
 
-            {/* User Type Selection */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              {/* Client Card */}
-              <div className="bg-primary-800/50 border-2 border-primary-700 hover:border-accent-500 rounded-2xl p-4 md:p-6 transition-all hover:scale-105 group">
-                <div className="flex flex-col items-center text-center mb-4 md:mb-6">
-                  <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 transition-transform">
-                    <User size={28} className="text-white md:w-8 md:h-8" />
-                  </div>
-                  <h3 className="font-bold text-xl md:text-2xl text-white mb-1 md:mb-2">Client</h3>
-                  <p className="text-primary-300 text-xs md:text-sm">
-                    Find barbers, book appointments, and discover your perfect style
-                  </p>
-                </div>
-                
-                <div className="space-y-2 md:space-y-3">
-                  <button
-                    onClick={() => handleUserTypeSelection('client', 'signup')}
-                    className="w-full btn-primary py-2.5 md:py-3 text-center text-sm md:text-base"
-                  >
-                    Sign Up as Client
-                  </button>
-                  <button
-                    onClick={() => handleUserTypeSelection('client', 'login')}
-                    className="w-full btn-secondary py-2.5 md:py-3 text-center text-sm md:text-base"
-                  >
-                    Sign In
-                  </button>
-                </div>
+            {/* Main Actions */}
+            <div className="space-y-3 mb-6">
+              {/* Sign In */}
+              <Link 
+                href="/login"
+                className="w-full btn-primary py-3 text-center flex items-center justify-center space-x-2"
+              >
+                <User size={18} />
+                <span className="font-semibold">Sign In</span>
+              </Link>
+
+              {/* Sign Up */}
+              <Link
+                href="/signup"
+                className="w-full btn-secondary py-3 text-center flex items-center justify-center space-x-2"
+              >
+                <span className="font-medium">Create Account</span>
+              </Link>
+
+              {/* Divider */}
+              <div className="flex items-center my-4">
+                <div className="flex-1 border-t border-primary-700"></div>
+                <span className="px-3 text-primary-500 text-xs">OR</span>
+                <div className="flex-1 border-t border-primary-700"></div>
               </div>
 
-              {/* Barber Card */}
-              <div className="bg-primary-800/50 border-2 border-primary-700 hover:border-accent-500 rounded-2xl p-4 md:p-6 transition-all hover:scale-105 group">
-                <div className="flex flex-col items-center text-center mb-4 md:mb-6">
-                  <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-accent-400 to-accent-600 rounded-full flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 transition-transform">
-                    <Scissors size={28} className="text-black md:w-8 md:h-8" />
-                  </div>
-                  <h3 className="font-bold text-xl md:text-2xl text-white mb-1 md:mb-2">Barber</h3>
-                  <p className="text-primary-300 text-xs md:text-sm">
-                    Grow your business, manage bookings, and connect with clients
-                  </p>
-                </div>
-                
-                <div className="space-y-2 md:space-y-3">
-                  <button
-                    onClick={() => handleUserTypeSelection('barber', 'signup')}
-                    className="w-full bg-accent-500 hover:bg-accent-600 text-black font-semibold py-2.5 md:py-3 rounded-lg transition-all text-sm md:text-base"
-                  >
-                    Sign Up as Barber
-                  </button>
-                  <button
-                    onClick={() => handleUserTypeSelection('barber', 'login')}
-                    className="w-full btn-secondary py-2.5 md:py-3 text-center text-sm md:text-base"
-                  >
-                    Sign In
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Continue as Guest */}
-            <div className="text-center">
+              {/* Continue as Guest */}
               <button
                 onClick={handleSkip}
-                className="w-full bg-primary-700/50 hover:bg-primary-600/50 border-2 border-primary-600 hover:border-primary-500 text-white font-medium py-2.5 md:py-3 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 text-sm md:text-base"
+                className="w-full bg-primary-800/50 hover:bg-primary-700/50 border border-primary-600 hover:border-accent-500 text-white font-medium py-3 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
               >
-                <Users size={18} className="md:w-5 md:h-5" />
+                <Users size={18} />
                 <span>Continue as Guest</span>
               </button>
-              <p className="text-primary-500 text-[10px] md:text-xs mt-2">
-                Browse without creating an account
+              <p className="text-primary-500 text-xs text-center mt-2">
+                Browse barbers and explore features
               </p>
             </div>
 
             {/* Benefits */}
-            <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-primary-700">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 text-center">
+            <div className="mt-6 pt-6 border-t border-primary-700">
+              <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
-                  <div className="text-accent-500 font-bold text-xl md:text-2xl mb-1">150+</div>
-                  <div className="text-primary-400 text-[10px] md:text-xs">Barbers Nationwide</div>
+                  <div className="text-accent-500 font-bold text-xl mb-1">150+</div>
+                  <div className="text-primary-400 text-[10px]">Top Barbers</div>
                 </div>
                 <div>
-                  <div className="text-accent-500 font-bold text-xl md:text-2xl mb-1">AI</div>
-                  <div className="text-primary-400 text-[10px] md:text-xs">Style Matching</div>
+                  <div className="text-accent-500 font-bold text-xl mb-1">AI</div>
+                  <div className="text-primary-400 text-[10px]">Style Match</div>
                 </div>
                 <div>
-                  <div className="text-accent-500 font-bold text-xl md:text-2xl mb-1">1.5x</div>
-                  <div className="text-primary-400 text-[10px] md:text-xs">Prepay Rewards</div>
+                  <div className="text-accent-500 font-bold text-xl mb-1">1.5x</div>
+                  <div className="text-primary-400 text-[10px]">Rewards</div>
                 </div>
                 <div>
-                  <div className="text-accent-500 font-bold text-xl md:text-2xl mb-1">Free</div>
-                  <div className="text-primary-400 text-[10px] md:text-xs">To Get Started</div>
+                  <div className="text-accent-500 font-bold text-xl mb-1">Free</div>
+                  <div className="text-primary-400 text-[10px]">To Start</div>
                 </div>
               </div>
             </div>
