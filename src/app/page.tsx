@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Search, 
   MapPin, 
@@ -13,14 +13,32 @@ import {
   ChevronDown,
   Menu,
   X,
-  Check
+  Check,
+  Scissors,
+  User
 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export default function Home() {
+  const router = useRouter()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [searchType, setSearchType] = useState<'location' | 'barber' | 'style'>('location')
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false)
+
+  // Check if user has visited before
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hasVisited = localStorage.getItem('hasVisitedBefore')
+      const userType = localStorage.getItem('userType')
+      
+      if (!hasVisited && !userType) {
+        // First time visitor - show welcome modal
+        setShowWelcomeModal(true)
+      }
+    }
+  }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -31,6 +49,25 @@ export default function Home() {
     params.set('search', searchTerm)
     params.set('type', searchType)
     window.location.href = `/discover?${params.toString()}`
+  }
+
+  const handleUserTypeSelection = (type: 'client' | 'barber', action: 'login' | 'signup') => {
+    // Save user type to localStorage
+    localStorage.setItem('userType', type)
+    localStorage.setItem('hasVisitedBefore', 'true')
+    setShowWelcomeModal(false)
+    
+    // Redirect to appropriate page
+    if (action === 'signup') {
+      router.push(`/signup?type=${type}`)
+    } else {
+      router.push(`/login?type=${type}`)
+    }
+  }
+
+  const handleSkip = () => {
+    localStorage.setItem('hasVisitedBefore', 'true')
+    setShowWelcomeModal(false)
   }
 
   return (
@@ -514,6 +551,117 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Welcome Modal - First Time Visitors */}
+      {showWelcomeModal && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+          <div className="bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 rounded-3xl max-w-2xl w-full p-8 border-2 border-accent-500/30 shadow-2xl animate-fade-in">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <div className="w-20 h-20 bg-gradient-to-br from-accent-400 to-accent-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-4xl">💈</span>
+              </div>
+              <h1 className="font-display font-bold text-4xl text-white mb-3">
+                Welcome to FindMyFade!
+              </h1>
+              <p className="text-primary-300 text-lg">
+                Let&apos;s get you started. Are you here as a...
+              </p>
+            </div>
+
+            {/* User Type Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              {/* Client Card */}
+              <div className="bg-primary-800/50 border-2 border-primary-700 hover:border-accent-500 rounded-2xl p-6 transition-all hover:scale-105 group">
+                <div className="flex flex-col items-center text-center mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <User size={32} className="text-white" />
+                  </div>
+                  <h3 className="font-bold text-2xl text-white mb-2">Client</h3>
+                  <p className="text-primary-300 text-sm">
+                    Find barbers, book appointments, and discover your perfect style
+                  </p>
+                </div>
+                
+                <div className="space-y-3">
+                  <button
+                    onClick={() => handleUserTypeSelection('client', 'signup')}
+                    className="w-full btn-primary py-3 text-center"
+                  >
+                    Sign Up as Client
+                  </button>
+                  <button
+                    onClick={() => handleUserTypeSelection('client', 'login')}
+                    className="w-full btn-secondary py-3 text-center"
+                  >
+                    Sign In
+                  </button>
+                </div>
+              </div>
+
+              {/* Barber Card */}
+              <div className="bg-primary-800/50 border-2 border-primary-700 hover:border-accent-500 rounded-2xl p-6 transition-all hover:scale-105 group">
+                <div className="flex flex-col items-center text-center mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-accent-400 to-accent-600 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <Scissors size={32} className="text-black" />
+                  </div>
+                  <h3 className="font-bold text-2xl text-white mb-2">Barber</h3>
+                  <p className="text-primary-300 text-sm">
+                    Grow your business, manage bookings, and connect with clients
+                  </p>
+                </div>
+                
+                <div className="space-y-3">
+                  <button
+                    onClick={() => handleUserTypeSelection('barber', 'signup')}
+                    className="w-full bg-gradient-to-r from-accent-400 to-accent-600 hover:from-accent-500 hover:to-accent-700 text-black font-semibold py-3 rounded-lg transition-all"
+                  >
+                    Sign Up as Barber
+                  </button>
+                  <button
+                    onClick={() => handleUserTypeSelection('barber', 'login')}
+                    className="w-full btn-secondary py-3 text-center"
+                  >
+                    Sign In
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Skip Button */}
+            <div className="text-center">
+              <button
+                onClick={handleSkip}
+                className="text-primary-400 hover:text-white text-sm transition-colors"
+              >
+                Skip for now, just browsing
+              </button>
+            </div>
+
+            {/* Benefits */}
+            <div className="mt-8 pt-6 border-t border-primary-700">
+              <div className="grid grid-cols-2 gap-4 text-center">
+                <div>
+                  <div className="text-accent-500 font-bold text-2xl mb-1">150+</div>
+                  <div className="text-primary-400 text-xs">Barbers Nationwide</div>
+                </div>
+                <div>
+                  <div className="text-accent-500 font-bold text-2xl mb-1">AI</div>
+                  <div className="text-primary-400 text-xs">Style Matching</div>
+                </div>
+                <div>
+                  <div className="text-accent-500 font-bold text-2xl mb-1">1.5x</div>
+                  <div className="text-primary-400 text-xs">Prepay Rewards</div>
+                </div>
+                <div>
+                  <div className="text-accent-500 font-bold text-2xl mb-1">Free</div>
+                  <div className="text-primary-400 text-xs">To Get Started</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
