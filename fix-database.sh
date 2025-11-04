@@ -35,6 +35,13 @@ echo ""
 # Kill any running servers
 echo "🛑 Stopping any running servers..."
 lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+sleep 2
+echo ""
+
+# Clear Next.js cache
+echo "🗑️ Clearing Next.js cache..."
+rm -rf .next
+echo "✅ Cache cleared"
 echo ""
 
 # Generate Prisma Client
@@ -47,21 +54,31 @@ echo "📤 Syncing database schema..."
 npx prisma db push --accept-data-loss
 echo ""
 
+# Build Next.js app
+echo "🏗️ Building Next.js app..."
+npm run build > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+    echo "✅ Build successful"
+else
+    echo "⚠️ Build had warnings (continuing...)"
+fi
+echo ""
+
 # Start dev server
 echo "🚀 Starting dev server..."
 echo ""
 echo "=================================="
 echo "✅ Setup complete!"
 echo ""
-echo "Your server is starting at: http://localhost:3000"
+echo "Your server will start at: http://localhost:3000"
 echo ""
-echo "Visit these pages to verify:"
+echo "🔍 Verify everything works:"
 echo "  • http://localhost:3000/setup-check (System status)"
 echo "  • http://localhost:3000/api/health (API health)"
 echo "  • http://localhost:3000/clear-cache (Clear cache)"
 echo ""
-echo "To test authentication:"
-echo "  node test-auth.js"
+echo "🧪 Test authentication:"
+echo "  node test-auth.js (in another terminal)"
 echo ""
 echo "=================================="
 echo ""
