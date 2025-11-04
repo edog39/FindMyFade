@@ -48,11 +48,48 @@ export default function AppointmentsPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const savedBookings = localStorage.getItem('userBookings')
-      if (savedBookings) {
-        const parsed = JSON.parse(savedBookings)
-        setBookings(parsed)
+      // Load appointments from database
+      const fetchAppointments = async () => {
+        const userProfile = localStorage.getItem('userProfile')
+        if (userProfile) {
+          const profile = JSON.parse(userProfile)
+          
+          try {
+            console.log('🔄 Fetching client appointments for user:', profile.id)
+            const response = await fetch(`/api/appointments?userId=${profile.id}&userType=client`, {
+              cache: 'no-store'
+            })
+
+            if (response.ok) {
+              const data = await response.json()
+              console.log('✅ Loaded', data.appointments.length, 'appointments from database')
+              
+              // Combine database appointments with localStorage (for backwards compatibility)
+              const savedBookings = localStorage.getItem('userBookings')
+              const localBookings = savedBookings ? JSON.parse(savedBookings) : []
+              
+              // Merge and deduplicate
+              const allBookings = [...data.appointments, ...localBookings]
+              setBookings(allBookings)
+            } else {
+              console.log('⚠️ Failed to load appointments from database, using localStorage')
+              const savedBookings = localStorage.getItem('userBookings')
+              if (savedBookings) {
+                setBookings(JSON.parse(savedBookings))
+              }
+            }
+          } catch (error) {
+            console.error('❌ Error fetching appointments:', error)
+            // Fallback to localStorage
+            const savedBookings = localStorage.getItem('userBookings')
+            if (savedBookings) {
+              setBookings(JSON.parse(savedBookings))
+            }
+          }
+        }
       }
+
+      fetchAppointments()
       
       // Load wallet balance
       const walletData = localStorage.getItem('walletData')

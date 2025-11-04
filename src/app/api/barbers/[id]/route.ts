@@ -93,6 +93,7 @@ export async function GET(
     // Format the response
     const formattedBarber = {
       id: barberProfile.id,
+      userId: barberProfile.user.id, // Add barber's user ID for bookings
       name: `${barberProfile.user.firstName} ${barberProfile.user.lastName}`,
       shopName: barberProfile.shopName,
       bio: barberProfile.bio,

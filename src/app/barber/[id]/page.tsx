@@ -326,10 +326,63 @@ export default function BarberProfilePage() {
       servicePrice = Math.max(0, servicePrice - discount)
     }
     
-    // Simulate API call delay for booking and payment processing
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    // Get user profile for clientId
+    const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}')
+    const clientId = userProfile.id
     
-    // Create booking object
+    if (!clientId) {
+      alert('❌ You must be logged in to book an appointment')
+      setSendingSMS(false)
+      return
+    }
+    
+    // Get barber's user ID (now included in API response)
+    const barberUserId = barber.userId
+    
+    if (!barberUserId) {
+      console.error('⚠️ Barber userId not found, cannot save to database')
+      alert('⚠️ Booking will be saved locally only. Please refresh and try again.')
+    }
+    
+    try {
+      // Save booking to database
+      console.log('📝 Creating booking in database...', {
+        clientId,
+        barberId: barberUserId,
+        barberProfileId: barber.id,
+        service: selectedServiceObj?.name,
+        date: selectedDate,
+        time: selectedTime
+      })
+      
+      const response = await fetch('/api/appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId: clientId,
+          barberId: barberUserId || clientId, // Fallback to clientId if userId missing
+          barberProfileId: barber.id,
+          service: selectedServiceObj?.name || '',
+          date: selectedDate,
+          time: selectedTime,
+          totalPrice: servicePrice,
+          isPrepaid: paymentMethod === 'prepay',
+          notes: selectedReward ? `Applied reward: ${selectedReward.title}` : ''
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok) {
+        console.log('✅ Booking created in database:', data.appointment.id)
+      } else {
+        console.error('⚠️ Database booking failed, saving to localStorage only:', data.error)
+      }
+    } catch (error) {
+      console.error('⚠️ Error saving to database, using localStorage fallback:', error)
+    }
+    
+    // Also save to localStorage for immediate access
     const booking = {
       id: Date.now(),
       barberId: barber.id,
@@ -339,12 +392,11 @@ export default function BarberProfilePage() {
       date: selectedDate,
       time: selectedTime,
       price: servicePrice,
-      status: 'confirmed_prepaid' as const,
-      paymentMethod: 'prepay' as const,
+      status: paymentMethod === 'prepay' ? 'confirmed_prepaid' : 'confirmed_pay_later',
+      paymentMethod: paymentMethod,
       bookedAt: new Date().toISOString()
     }
     
-    // Save booking to localStorage
     const existingBookings = JSON.parse(localStorage.getItem('userBookings') || '[]')
     existingBookings.push(booking)
     localStorage.setItem('userBookings', JSON.stringify(existingBookings))

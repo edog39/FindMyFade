@@ -17,6 +17,7 @@ import {
   Edit,
   X,
   Check,
+  CheckCircle,
   ChevronLeft,
   MessageCircle,
   Bell,
@@ -56,7 +57,9 @@ export default function BarberDashboardPage() {
     profileImage: '',
     coverImage: ''
   })
-  const [myBarberId, setMyBarberId] = useState<number | null>(null)
+  const [myBarberId, setMyBarberId] = useState<string | null>(null)
+  const [myUserId, setMyUserId] = useState<string | null>(null)
+  const [barberAppointments, setBarberAppointments] = useState<any[]>([])
   const profileImageRef = useRef<HTMLInputElement>(null)
   const coverImageRef = useRef<HTMLInputElement>(null)
 
@@ -71,6 +74,7 @@ export default function BarberDashboardPage() {
           return
         }
         setBarberProfile(profile)
+        setMyUserId(profile.id) // Store user ID for fetching appointments
         setProfileData({
           shopName: profile.shopName || '',
           bio: profile.bio || '',
@@ -118,6 +122,32 @@ export default function BarberDashboardPage() {
       }
     }
   }, [router])
+
+  // Fetch barber's appointments from database
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      if (!myUserId) return
+
+      try {
+        console.log('🔄 Fetching barber appointments for user:', myUserId)
+        const response = await fetch(`/api/appointments?userId=${myUserId}&userType=barber`, {
+          cache: 'no-store'
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          console.log('✅ Loaded', data.appointments.length, 'appointments from database')
+          setBarberAppointments(data.appointments)
+        } else {
+          console.log('⚠️ Failed to load appointments from database')
+        }
+      } catch (error) {
+        console.error('❌ Error fetching appointments:', error)
+      }
+    }
+
+    fetchAppointments()
+  }, [myUserId])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -392,17 +422,42 @@ export default function BarberDashboardPage() {
               <div className="card">
                 <h3 className="font-semibold text-white text-lg mb-4">Upcoming Appointments</h3>
                 <div className="space-y-3">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="bg-primary-800/50 rounded-lg p-3 flex items-center justify-between">
-                      <div>
-                        <p className="text-white font-medium">Client #{i}</p>
-                        <p className="text-primary-400 text-sm">Today at {9 + i}:00 AM</p>
-                      </div>
-                      <button className="text-accent-500 hover:text-accent-400">
-                        <MessageCircle size={18} />
-                      </button>
+                  {barberAppointments.length > 0 ? (
+                    barberAppointments
+                      .filter((apt: any) => apt.status !== 'CANCELLED')
+                      .slice(0, 5)
+                      .map((apt: any) => (
+                        <div key={apt.id} className="bg-primary-800/50 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <p className="text-white font-medium">{apt.clientName || apt.barberName}</p>
+                              <p className="text-primary-400 text-sm">
+                                {new Date(apt.date).toLocaleDateString('en-US', { 
+                                  month: 'short', 
+                                  day: 'numeric' 
+                                })} at {apt.time}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-accent-500 font-semibold">${apt.price}</p>
+                              <p className="text-primary-500 text-xs">{apt.service}</p>
+                            </div>
+                          </div>
+                          {apt.prepaid && (
+                            <div className="text-xs text-green-400 flex items-center space-x-1">
+                              <CheckCircle size={12} />
+                              <span>Prepaid</span>
+                            </div>
+                          )}
+                        </div>
+                      ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <Calendar className="w-12 h-12 text-primary-600 mx-auto mb-2" />
+                      <p className="text-primary-400 text-sm">No upcoming appointments</p>
+                      <p className="text-primary-500 text-xs mt-1">Bookings will appear here</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
 
