@@ -29,7 +29,6 @@ export default function Home() {
   const [userName, setUserName] = useState('')
   const [userType, setUserType] = useState('')
   const [showProfileMenu, setShowProfileMenu] = useState(false)
-  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 })
 
   // Check if user is logged in
   useEffect(() => {
@@ -74,15 +73,6 @@ export default function Home() {
     }
   }, [showProfileMenu])
 
-  // Track cursor position for glow effect
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setCursorPosition({ x: e.clientX, y: e.clientY })
-    }
-
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
-  }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -110,18 +100,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Cursor Glow Effect */}
-      <div 
-        className="fixed pointer-events-none z-0 transition-opacity duration-300"
-        style={{
-          left: `${cursorPosition.x}px`,
-          top: `${cursorPosition.y}px`,
-          transform: 'translate(-50%, -50%)',
-        }}
-      >
-        <div className="w-96 h-96 bg-gradient-radial from-accent-500/30 via-accent-600/10 to-transparent rounded-full blur-3xl" />
-      </div>
-
       {/* Navigation */}
       <nav className="relative z-50 bg-primary-900/80 backdrop-blur-lg border-b border-primary-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
