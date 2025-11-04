@@ -64,12 +64,23 @@ export default function LoginPage() {
         userType: data.user.userType.toLowerCase(),
         accountType: data.user.userType.toLowerCase(),
         preferences: data.user.preferences || [],
-        barberProfileId: data.user.barberProfile?.id
+        barberProfileId: data.user.barberProfile?.id,
+        walletBalance: data.user.walletBalance || 100,
+        loyaltyPoints: data.user.loyaltyPoints || 100
       }
 
       localStorage.setItem('userProfile', JSON.stringify(userProfile))
       localStorage.setItem('isLoggedIn', 'true')
       localStorage.setItem('userType', data.user.userType.toLowerCase())
+      
+      // Initialize wallet data if not exists
+      if (!localStorage.getItem('walletData')) {
+        const walletData = {
+          balance: data.user.walletBalance || 100.00,
+          points: data.user.loyaltyPoints || 100
+        }
+        localStorage.setItem('walletData', JSON.stringify(walletData))
+      }
 
       setIsLoading(false)
 
@@ -77,14 +88,16 @@ export default function LoginPage() {
       alert(`Welcome back, ${data.user.firstName}! 🎉`)
 
       // Redirect based on user type
-      if (data.user.userType === 'BARBER') {
-        router.push('/barber-dashboard')
-      } else {
-        router.push('/')
-      }
+      setTimeout(() => {
+        if (data.user.userType === 'BARBER') {
+          router.push('/barber-dashboard')
+        } else {
+          router.push('/')
+        }
+      }, 100)
     } catch (error) {
       console.error('Login error:', error)
-      setError('An error occurred during login. Please try again.')
+      setError('Network error. Please check your connection and try again.')
       setIsLoading(false)
     }
   }

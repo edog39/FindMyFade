@@ -389,14 +389,14 @@ export default function Home() {
                 <MapPin size={24} className="text-accent-400 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300 relative z-10" />
                 <span className="font-bold text-lg text-white relative z-10">Near Me</span>
               </Link>
-              <Link href="/ai-style" className="relative group overflow-hidden flex items-center space-x-3 bg-gradient-to-br from-purple-600/40 via-accent-500/30 to-pink-600/40 backdrop-blur-xl border-2 border-accent-400 hover:border-accent-300 px-10 py-5 rounded-2xl transition-all duration-300 shadow-2xl shadow-purple-500/40 hover:shadow-3xl hover:shadow-accent-400/60 hover:scale-110 active:scale-95">
-                <div className="absolute -top-4 -right-4 bg-gradient-to-r from-accent-400 via-yellow-400 to-accent-500 text-black text-sm px-4 py-1.5 rounded-full font-black shadow-xl animate-bounce z-20">
-                  ✨ AI POWERED
+              <Link href="/ai-style" className="relative group overflow-hidden flex items-center space-x-3 bg-gradient-to-br from-purple-600/40 via-accent-500/30 to-pink-600/40 backdrop-blur-xl border-2 border-accent-400 hover:border-accent-300 px-8 py-4 rounded-2xl transition-all duration-300 shadow-2xl shadow-purple-500/40 hover:shadow-3xl hover:shadow-accent-400/60 hover:scale-105 active:scale-95">
+                <div className="absolute -top-3 -right-3 bg-gradient-to-r from-accent-400 via-yellow-400 to-accent-500 text-black text-xs px-3 py-1 rounded-full font-black shadow-xl animate-bounce z-20">
+                  ✨ AI
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 via-accent-500/30 to-pink-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 via-accent-500/30 to-pink-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-purple-400/20 to-accent-400/20 group-hover:blur-3xl transition-all"></div>
-                <Camera size={28} className="text-accent-300 group-hover:scale-150 group-hover:rotate-12 transition-all duration-500 relative z-10 drop-shadow-[0_0_12px_rgba(250,204,21,0.8)]" />
-                <span className="font-black text-xl bg-gradient-to-r from-accent-200 via-accent-300 to-purple-300 bg-clip-text text-transparent relative z-10 group-hover:from-accent-100 group-hover:via-accent-200 group-hover:to-purple-200 transition-all">AI Style Match</span>
+                <Camera size={24} className="text-accent-300 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 relative z-10 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]" />
+                <span className="font-bold text-lg bg-gradient-to-r from-accent-200 via-accent-300 to-purple-300 bg-clip-text text-transparent relative z-10 group-hover:from-accent-100 group-hover:via-accent-200 group-hover:to-purple-200 transition-all">AI Style Match</span>
               </Link>
               <Link href="/discover?sort=rating" className="relative group overflow-hidden flex items-center space-x-3 bg-gradient-to-br from-primary-800/80 to-primary-700/60 backdrop-blur-xl border-2 border-primary-600 hover:border-accent-500/70 px-8 py-4 rounded-2xl transition-all duration-300 shadow-xl shadow-black/30 hover:shadow-2xl hover:shadow-accent-500/20 hover:scale-105 active:scale-95">
                 <div className="absolute inset-0 bg-gradient-to-r from-accent-500/0 via-accent-500/10 to-accent-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>

@@ -132,13 +132,24 @@ export default function SignUpPage() {
         userType: userType,
         accountType: userType,
         preferences: formData.preferences,
-        barberProfileId: data.user.barberProfileId
+        barberProfileId: data.user.barberProfileId,
+        walletBalance: 100,
+        loyaltyPoints: 100
       }
 
       localStorage.setItem('userProfile', JSON.stringify(userProfile))
       localStorage.setItem('isLoggedIn', 'true')
       localStorage.setItem('userType', userType)
       localStorage.setItem('hasVisitedBefore', 'true')
+      
+      // Initialize wallet data for clients
+      if (userType === 'client') {
+        const walletData = {
+          balance: 100.00,
+          points: 100
+        }
+        localStorage.setItem('walletData', JSON.stringify(walletData))
+      }
 
       // Show success message
       alert(`✅ Account created successfully! Welcome, ${formData.firstName}! 🎉`)
@@ -258,7 +269,23 @@ export default function SignUpPage() {
               {userType === 'client' ? 'Personal Information' : 'Basic Information'}
             </h2>
 
-            <form onSubmit={handleNextStep} className="space-y-4">
+            <form onSubmit={(e) => {
+              e.preventDefault()
+              // Validate passwords match
+              if (formData.password !== formData.confirmPassword) {
+                alert('❌ Passwords do not match!')
+                return
+              }
+              // Validate password length
+              if (formData.password.length < 6) {
+                alert('❌ Password must be at least 6 characters long!')
+                return
+              }
+              // For clients, go to step 3 (preferences). For barbers, also go to step 3 (details)
+              if (userType === 'client' || userType === 'barber') {
+                handleNextStep()
+              }
+            }} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -335,11 +362,12 @@ export default function SignUpPage() {
                 </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Password"
+                  placeholder="Password (min 6 characters)"
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
                   className="input w-full pl-10 pr-10"
                   required
+                  minLength={6}
                 />
                 <button
                   type="button"
@@ -365,6 +393,7 @@ export default function SignUpPage() {
                   onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
                   className="input w-full pl-10 pr-10"
                   required
+                  minLength={6}
                 />
                 <button
                   type="button"
@@ -456,7 +485,7 @@ export default function SignUpPage() {
                   type="submit"
                   className="btn-primary flex-1"
                 >
-                  {userType === 'client' ? 'Create Account' : 'Continue'}
+                  {userType === 'client' ? 'Next' : 'Continue'}
                 </button>
               </div>
             </form>
