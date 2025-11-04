@@ -715,6 +715,7 @@ export default function Home() {
               <ul className="space-y-2 text-primary-400">
                 <li><Link href="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
                 <li><Link href="/feedback" className="hover:text-white transition-colors">Contact Us</Link></li>
+                <li><Link href="/clear-cache" className="hover:text-accent-400 transition-colors">🗑️ Clear Cache</Link></li>
                 <li><Link href="/map" className="hover:text-white transition-colors">Explore Map</Link></li>
                 <li><Link href="/discover" className="hover:text-white transition-colors">Browse All Barbers</Link></li>
               </ul>
