@@ -101,59 +101,64 @@ export default function Home() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Navigation */}
-      <nav className="relative z-50 bg-primary-900/80 backdrop-blur-lg border-b border-primary-800">
+      <nav className="sticky top-0 z-50 bg-gradient-to-r from-primary-900/95 via-primary-900/90 to-primary-900/95 backdrop-blur-xl border-b border-primary-700/50 shadow-lg shadow-black/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Link href="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-accent-400 to-accent-600 rounded-lg flex items-center justify-center">
-                  <span className="text-black font-bold text-lg">F</span>
+              <Link href="/" className="flex items-center space-x-3 group">
+                <div className="w-10 h-10 bg-gradient-to-br from-accent-400 via-accent-500 to-accent-600 rounded-xl flex items-center justify-center shadow-lg shadow-accent-500/30 group-hover:shadow-accent-500/50 group-hover:scale-110 transition-all duration-300">
+                  <span className="text-black font-bold text-xl">F</span>
                 </div>
-                <span className="font-display font-bold text-xl text-white">FindMyFade</span>
+                <span className="font-display font-bold text-xl text-white group-hover:text-accent-400 transition-colors">FindMyFade</span>
               </Link>
             </div>
             
             {/* Desktop Navigation */}
             <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-8">
-                <Link href="/discover" className="text-primary-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
-                  Discover
+              <div className="ml-10 flex items-center space-x-2">
+                <Link href="/discover" className="relative text-primary-300 hover:text-white px-4 py-2 text-sm font-semibold transition-all duration-300 group">
+                  <span className="relative z-10">Discover</span>
+                  <div className="absolute inset-0 bg-accent-500/0 group-hover:bg-accent-500/10 rounded-lg transition-all duration-300"></div>
                 </Link>
-                <Link href="/map" className="text-primary-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
-                  Map
+                <Link href="/map" className="relative text-primary-300 hover:text-white px-4 py-2 text-sm font-semibold transition-all duration-300 group">
+                  <span className="relative z-10">Map</span>
+                  <div className="absolute inset-0 bg-accent-500/0 group-hover:bg-accent-500/10 rounded-lg transition-all duration-300"></div>
                 </Link>
-                <Link href="/showcase" className="text-primary-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
-                  Showcase
+                <Link href="/showcase" className="relative text-primary-300 hover:text-white px-4 py-2 text-sm font-semibold transition-all duration-300 group">
+                  <span className="relative z-10">Showcase</span>
+                  <div className="absolute inset-0 bg-accent-500/0 group-hover:bg-accent-500/10 rounded-lg transition-all duration-300"></div>
                 </Link>
-                <Link href="/ai-style" className="text-primary-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
-                  AI Styles
+                <Link href="/ai-style" className="relative text-accent-400 hover:text-accent-300 px-4 py-2 text-sm font-bold transition-all duration-300 group">
+                  <span className="relative z-10 flex items-center space-x-1">
+                    <span>✨ AI Styles</span>
+                  </span>
+                  <div className="absolute inset-0 bg-accent-500/10 group-hover:bg-accent-500/20 rounded-lg transition-all duration-300 border border-accent-500/30 group-hover:border-accent-500/50"></div>
                 </Link>
-                <Link href="/wallet" className="text-primary-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
-                  Wallet
+                <Link href="/wallet" className="relative text-primary-300 hover:text-white px-4 py-2 text-sm font-semibold transition-all duration-300 group">
+                  <span className="relative z-10">Wallet</span>
+                  <div className="absolute inset-0 bg-accent-500/0 group-hover:bg-accent-500/10 rounded-lg transition-all duration-300"></div>
                 </Link>
-                <Link href="/appointments" className="text-primary-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
-                  My Appointments
-                </Link>
-                <Link href="/feedback" className="text-primary-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
-                  Feedback
+                <Link href="/appointments" className="relative text-primary-300 hover:text-white px-4 py-2 text-sm font-semibold transition-all duration-300 group">
+                  <span className="relative z-10">Appointments</span>
+                  <div className="absolute inset-0 bg-accent-500/0 group-hover:bg-accent-500/10 rounded-lg transition-all duration-300"></div>
                 </Link>
                 
                 {isLoggedIn ? (
                   <div className="relative profile-menu-container">
                     <button
                       onClick={() => setShowProfileMenu(!showProfileMenu)}
-                      className="flex items-center space-x-2 bg-primary-800 hover:bg-primary-700 border border-primary-600 hover:border-accent-500 px-4 py-2 rounded-lg transition-all"
+                      className="flex items-center space-x-2 bg-gradient-to-r from-primary-800/80 to-primary-700/80 hover:from-primary-700 hover:to-primary-600 border border-primary-600 hover:border-accent-500/50 px-4 py-2 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-accent-500/20"
                     >
-                      <div className="w-8 h-8 bg-gradient-to-br from-accent-400 to-accent-600 rounded-full flex items-center justify-center">
+                      <div className="w-9 h-9 bg-gradient-to-br from-accent-400 via-accent-500 to-accent-600 rounded-full flex items-center justify-center shadow-lg">
                         <span className="text-black font-bold text-sm">
                           {userName.charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div className="text-left">
-                        <p className="text-white text-sm font-medium">{userName}</p>
-                        <p className="text-primary-400 text-xs capitalize">{userType}</p>
+                        <p className="text-white text-sm font-semibold">{userName}</p>
+                        <p className="text-accent-400 text-xs capitalize font-medium">{userType}</p>
                       </div>
-                      <ChevronDown size={16} className="text-primary-400" />
+                      <ChevronDown size={16} className="text-primary-400 group-hover:text-accent-400 transition-colors" />
                     </button>
 
                     {showProfileMenu && (
@@ -206,11 +211,12 @@ export default function Home() {
                   </div>
                 ) : (
                   <>
-                <Link href="/login" className="btn-secondary">
-                  Sign In
+                <Link href="/login" className="relative overflow-hidden bg-primary-800/50 hover:bg-primary-700 border border-primary-600 hover:border-accent-500/50 text-white font-semibold px-6 py-2.5 rounded-xl transition-all duration-300 hover:shadow-lg group">
+                  <span className="relative z-10">Sign In</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-accent-500/0 to-accent-500/0 group-hover:from-accent-500/10 group-hover:to-transparent transition-all duration-300"></div>
                 </Link>
-                <Link href="/signup" className="btn-primary">
-                  Get Started
+                <Link href="/signup" className="relative overflow-hidden bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-black font-bold px-8 py-2.5 rounded-xl transition-all duration-300 shadow-lg shadow-accent-500/30 hover:shadow-xl hover:shadow-accent-500/50 hover:scale-105 active:scale-95">
+                  <span className="relative z-10">Get Started</span>
                 </Link>
                   </>
                 )}
@@ -362,14 +368,14 @@ export default function Home() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search locations, barbers, or styles..."
-                    className="w-full pl-14 pr-36 py-5 bg-primary-800/50 backdrop-blur-xl border-2 border-primary-600 rounded-2xl text-white text-lg placeholder-primary-400 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-all duration-300 shadow-lg shadow-black/20 hover:shadow-accent-500/10"
+                    className="w-full pl-14 pr-36 py-5 bg-gradient-to-r from-primary-800/60 to-primary-800/40 backdrop-blur-xl border-2 border-primary-600 focus:border-accent-500 rounded-2xl text-white text-lg placeholder-primary-400 focus:outline-none focus:ring-2 focus:ring-accent-500/50 transition-all duration-300 shadow-xl shadow-black/30 focus:shadow-accent-500/20 hover:border-primary-500"
                   />
                   <div className="absolute inset-y-0 right-0 flex items-center pr-2">
                     <button 
                       type="submit" 
-                      className="bg-gradient-to-r from-accent-400 to-accent-600 hover:from-accent-500 hover:to-accent-700 text-black font-semibold px-8 py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-accent-500/50 hover:scale-105 active:scale-95"
+                      className="relative overflow-hidden bg-gradient-to-r from-accent-500 via-accent-600 to-accent-500 bg-[length:200%_100%] hover:bg-[position:100%] text-black font-bold px-8 py-3 rounded-xl transition-all duration-500 shadow-lg shadow-accent-500/40 hover:shadow-xl hover:shadow-accent-500/60 hover:scale-105 active:scale-95"
                     >
-                      Search
+                      <span className="relative z-10">Search</span>
                     </button>
                   </div>
                 </div>
@@ -378,25 +384,28 @@ export default function Home() {
 
             {/* Quick Actions */}
             <div className="flex flex-wrap justify-center gap-5 mb-20">
-              <Link href="/discover?nearby=true" className="group flex items-center space-x-3 bg-primary-800/60 backdrop-blur-xl border-2 border-primary-600 px-8 py-4 rounded-2xl hover:bg-primary-700/60 hover:border-accent-500/50 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95">
-                <MapPin size={22} className="text-accent-500 group-hover:scale-110 transition-transform" />
-                <span className="font-medium text-lg">Near Me</span>
+              <Link href="/discover?nearby=true" className="relative group overflow-hidden flex items-center space-x-3 bg-gradient-to-br from-primary-800/80 to-primary-700/60 backdrop-blur-xl border-2 border-primary-600 hover:border-accent-500/70 px-8 py-4 rounded-2xl transition-all duration-300 shadow-xl shadow-black/30 hover:shadow-2xl hover:shadow-accent-500/20 hover:scale-105 active:scale-95">
+                <div className="absolute inset-0 bg-gradient-to-r from-accent-500/0 via-accent-500/10 to-accent-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <MapPin size={24} className="text-accent-400 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300 relative z-10" />
+                <span className="font-bold text-lg text-white relative z-10">Near Me</span>
               </Link>
-              <Link href="/ai-style" className="relative group flex items-center space-x-3 bg-gradient-to-r from-accent-500/20 to-purple-500/20 backdrop-blur-xl border-2 border-accent-500/70 px-8 py-4 rounded-2xl hover:from-accent-500/30 hover:to-purple-500/30 hover:border-accent-400 transition-all duration-300 shadow-lg hover:shadow-2xl hover:shadow-accent-500/20 hover:scale-105 active:scale-95">
-                <div className="absolute -top-3 -right-3 bg-gradient-to-r from-accent-400 to-accent-600 text-black text-xs px-3 py-1 rounded-full font-bold shadow-lg animate-pulse">
-                  ✨ NEW
+              <Link href="/ai-style" className="relative group overflow-hidden flex items-center space-x-3 bg-gradient-to-br from-accent-600/30 via-accent-500/20 to-purple-600/30 backdrop-blur-xl border-2 border-accent-500 hover:border-accent-400 px-8 py-4 rounded-2xl transition-all duration-300 shadow-xl shadow-accent-500/30 hover:shadow-2xl hover:shadow-accent-500/50 hover:scale-105 active:scale-95">
+                <div className="absolute -top-3 -right-3 bg-gradient-to-r from-accent-400 via-accent-500 to-accent-600 text-black text-xs px-3 py-1 rounded-full font-bold shadow-lg animate-pulse z-20">
+                  ✨ AI
                 </div>
-                <Camera size={22} className="text-accent-400 group-hover:scale-110 group-hover:rotate-6 transition-all" />
-                <span className="font-semibold text-lg bg-gradient-to-r from-accent-400 to-purple-400 bg-clip-text text-transparent">AI Style Match</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-accent-500/0 to-purple-500/0 group-hover:from-accent-500/10 group-hover:to-purple-500/10 rounded-2xl blur-2xl -z-10 transition-all"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-accent-500/20 via-purple-500/20 to-accent-500/20 animate-pulse"></div>
+                <Camera size={24} className="text-accent-300 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300 relative z-10 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]" />
+                <span className="font-black text-lg bg-gradient-to-r from-accent-300 via-accent-400 to-purple-400 bg-clip-text text-transparent relative z-10">AI Style Match</span>
               </Link>
-              <Link href="/discover?sort=rating" className="group flex items-center space-x-3 bg-primary-800/60 backdrop-blur-xl border-2 border-primary-600 px-8 py-4 rounded-2xl hover:bg-primary-700/60 hover:border-accent-500/50 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95">
-                <Star size={22} className="text-accent-500 group-hover:scale-110 group-hover:rotate-12 transition-all fill-accent-500/30" />
-                <span className="font-medium text-lg">Top Rated</span>
+              <Link href="/discover?sort=rating" className="relative group overflow-hidden flex items-center space-x-3 bg-gradient-to-br from-primary-800/80 to-primary-700/60 backdrop-blur-xl border-2 border-primary-600 hover:border-accent-500/70 px-8 py-4 rounded-2xl transition-all duration-300 shadow-xl shadow-black/30 hover:shadow-2xl hover:shadow-accent-500/20 hover:scale-105 active:scale-95">
+                <div className="absolute inset-0 bg-gradient-to-r from-accent-500/0 via-accent-500/10 to-accent-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <Star size={24} className="text-accent-400 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300 relative z-10 fill-accent-400" />
+                <span className="font-bold text-lg text-white relative z-10">Top Rated</span>
               </Link>
-              <Link href="/appointments" className="group flex items-center space-x-3 bg-primary-800/60 backdrop-blur-xl border-2 border-primary-600 px-8 py-4 rounded-2xl hover:bg-primary-700/60 hover:border-accent-500/50 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95">
-                <Calendar size={22} className="text-accent-500 group-hover:scale-110 transition-transform" />
-                <span className="font-medium text-lg">My Appointments</span>
+              <Link href="/appointments" className="relative group overflow-hidden flex items-center space-x-3 bg-gradient-to-br from-primary-800/80 to-primary-700/60 backdrop-blur-xl border-2 border-primary-600 hover:border-accent-500/70 px-8 py-4 rounded-2xl transition-all duration-300 shadow-xl shadow-black/30 hover:shadow-2xl hover:shadow-accent-500/20 hover:scale-105 active:scale-95">
+                <div className="absolute inset-0 bg-gradient-to-r from-accent-500/0 via-accent-500/10 to-accent-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <Calendar size={24} className="text-accent-400 group-hover:scale-125 transition-all duration-300 relative z-10" />
+                <span className="font-bold text-lg text-white relative z-10">My Appointments</span>
               </Link>
             </div>
           </div>
