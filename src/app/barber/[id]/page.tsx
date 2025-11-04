@@ -299,7 +299,7 @@ export default function BarberProfilePage() {
   const confirmBooking = async () => {
     setSendingSMS(true)
     
-    const selectedServiceObj = barber.services.find(s => s.id === selectedService)
+    const selectedServiceObj = barber.services.find((s: any) => s.id === selectedService)
     let servicePrice = selectedServiceObj?.price || 0
     
     // Apply reward discount if selected
@@ -544,7 +544,7 @@ export default function BarberProfilePage() {
               <div className="space-y-6">
                 <h3 className="font-display font-semibold text-xl text-white">Portfolio</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {barber.portfolio.map((item) => (
+                  {barber.portfolio.map((item: any) => (
                     <div key={item.id} className="relative group">
                       <div className="aspect-square bg-gradient-to-br from-primary-700 to-primary-600 rounded-lg flex items-center justify-center overflow-hidden">
                         {item.type === 'video' && (
@@ -565,7 +565,7 @@ export default function BarberProfilePage() {
               <div className="space-y-6">
                 <h3 className="font-display font-semibold text-xl text-white">Services</h3>
                 <div className="space-y-4">
-                  {barber.services.map((service) => (
+                  {barber.services.map((service: any) => (
                     <div key={service.id} className="card hover:bg-primary-750 transition-colors">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
@@ -614,7 +614,7 @@ export default function BarberProfilePage() {
                 </div>
                 
                 <div className="space-y-4">
-                  {barber.reviews.map((review) => (
+                  {barber.reviews.map((review: any) => (
                     <div key={review.id} className="card">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center space-x-2">
@@ -673,7 +673,7 @@ export default function BarberProfilePage() {
                         {Object.entries(barber.hours).map(([day, hours]) => (
                           <div key={day} className="flex justify-between">
                             <span className="text-primary-300 capitalize">{day}:</span>
-                            <span className="text-white">{hours}</span>
+                            <span className="text-white">{hours as string}</span>
                           </div>
                         ))}
                       </div>
@@ -705,7 +705,7 @@ export default function BarberProfilePage() {
                   className="input w-full"
                 >
                   <option value="">Select Service</option>
-                  {barber.services.map(service => (
+                  {barber.services.map((service: any) => (
                     <option key={service.id} value={service.id}>
                       {service.name} - ${service.price}
                     </option>
@@ -718,7 +718,7 @@ export default function BarberProfilePage() {
                   className="input w-full"
                 >
                   <option value="">Select Date</option>
-                  {barber.availability.map(day => (
+                  {barber.availability.map((day: any) => (
                     <option key={day.date} value={day.date}>
                       {new Date(day.date).toLocaleDateString()}
                     </option>
@@ -733,8 +733,8 @@ export default function BarberProfilePage() {
                   >
                     <option value="">Select Time</option>
                     {barber.availability
-                      .find(day => day.date === selectedDate)
-                      ?.slots.map(time => (
+                      .find((day: any) => day.date === selectedDate)
+                      ?.slots.map((time: any) => (
                         <option key={time} value={time}>
                           {time}
                         </option>
@@ -827,7 +827,7 @@ export default function BarberProfilePage() {
                   <div className="flex justify-between">
                     <span className="text-primary-400">Service:</span>
                     <span className="text-white font-medium">
-                      {barber.services.find(s => s.id === selectedService)?.name}
+                      {barber.services.find((s: any) => s.id === selectedService)?.name}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -848,7 +848,7 @@ export default function BarberProfilePage() {
                   <div className="flex justify-between pt-2 border-t border-primary-700">
                     <span className="text-primary-400">Total:</span>
                     <span className="text-accent-500 font-bold text-lg">
-                      ${barber.services.find(s => s.id === selectedService)?.price}
+                      ${barber.services.find((s: any) => s.id === selectedService)?.price}
                     </span>
                   </div>
                 </div>
@@ -955,7 +955,7 @@ export default function BarberProfilePage() {
                         </div>
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-primary-300">Service Price:</span>
-                          <span className="text-white font-semibold">${barber.services.find(s => s.id === selectedService)?.price}</span>
+                          <span className="text-white font-semibold">${barber.services.find((s: any) => s.id === selectedService)?.price}</span>
                         </div>
                         {selectedReward && (
                           <div className="flex items-center justify-between text-sm">
@@ -967,13 +967,13 @@ export default function BarberProfilePage() {
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-red-400">Payment Amount:</span>
                           <span className="text-red-400 font-bold">
-                            -${Math.max(0, (barber.services.find(s => s.id === selectedService)?.price || 0) - (selectedReward?.discount || 0)).toFixed(2)}
+                            -${Math.max(0, (barber.services.find((s: any) => s.id === selectedService)?.price || 0) - (selectedReward?.discount || 0)).toFixed(2)}
                           </span>
                         </div>
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-accent-400 font-semibold">New Balance:</span>
                           <span className="text-accent-400 font-bold text-lg">
-                            ${(walletBalance - Math.max(0, (barber.services.find(s => s.id === selectedService)?.price || 0) - (selectedReward?.discount || 0))).toFixed(2)}
+                            ${(walletBalance - Math.max(0, (barber.services.find((s: any) => s.id === selectedService)?.price || 0) - (selectedReward?.discount || 0))).toFixed(2)}
                           </span>
                         </div>
                       </div>
@@ -981,7 +981,7 @@ export default function BarberProfilePage() {
                       <div className="bg-primary-900/50 rounded-lg p-3 space-y-2">
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-primary-300">Service Price:</span>
-                          <span className="text-white font-semibold">${barber.services.find(s => s.id === selectedService)?.price}</span>
+                          <span className="text-white font-semibold">${barber.services.find((s: any) => s.id === selectedService)?.price}</span>
                         </div>
                         {selectedReward && (
                           <div className="flex items-center justify-between text-sm">
@@ -993,7 +993,7 @@ export default function BarberProfilePage() {
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-blue-400 font-semibold">Pay at Shop:</span>
                           <span className="text-blue-400 font-bold text-lg">
-                            ${Math.max(0, (barber.services.find(s => s.id === selectedService)?.price || 0) - (selectedReward?.discount || 0)).toFixed(2)}
+                            ${Math.max(0, (barber.services.find((s: any) => s.id === selectedService)?.price || 0) - (selectedReward?.discount || 0)).toFixed(2)}
                           </span>
                         </div>
                       </div>
@@ -1006,7 +1006,7 @@ export default function BarberProfilePage() {
                           <span className="text-green-400 font-semibold text-sm">Points You'll Earn:</span>
                         </div>
                         <span className="text-green-400 font-bold text-lg">
-                          +{Math.ceil(Math.max(0, (barber.services.find(s => s.id === selectedService)?.price || 0) - (selectedReward?.discount || 0)) * (paymentMethod === 'prepay' ? 1.5 : 1.0))} pts
+                          +{Math.ceil(Math.max(0, (barber.services.find((s: any) => s.id === selectedService)?.price || 0) - (selectedReward?.discount || 0)) * (paymentMethod === 'prepay' ? 1.5 : 1.0))} pts
                         </span>
                       </div>
                       <p className="text-green-300/70 text-[10px] mt-1">
@@ -1014,7 +1014,7 @@ export default function BarberProfilePage() {
                       </p>
                     </div>
                     
-                    {paymentMethod === 'prepay' && walletBalance < Math.max(0, (barber.services.find(s => s.id === selectedService)?.price || 0) - (selectedReward?.discount || 0)) && (
+                    {paymentMethod === 'prepay' && walletBalance < Math.max(0, (barber.services.find((s: any) => s.id === selectedService)?.price || 0) - (selectedReward?.discount || 0)) && (
                       <div className="bg-red-500/10 border border-red-500/30 rounded p-2">
                         <p className="text-red-400 text-xs">
                           ⚠️ Insufficient balance. <Link href="/wallet" className="underline">Top up wallet</Link>
@@ -1050,7 +1050,7 @@ export default function BarberProfilePage() {
               </button>
               <button
                 onClick={confirmBooking}
-                disabled={sendingSMS || (paymentMethod === 'prepay' && walletBalance < Math.max(0, (barber.services.find(s => s.id === selectedService)?.price || 0) - (selectedReward?.discount || 0)))}
+                disabled={sendingSMS || (paymentMethod === 'prepay' && walletBalance < Math.max(0, (barber.services.find((s: any) => s.id === selectedService)?.price || 0) - (selectedReward?.discount || 0)))}
                 className="flex-1 btn-primary py-3 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {sendingSMS ? (
@@ -1063,7 +1063,7 @@ export default function BarberProfilePage() {
                     {paymentMethod === 'prepay' ? (
                       <>
                         <CreditCard size={20} />
-                        <span>Pay ${Math.max(0, (barber.services.find(s => s.id === selectedService)?.price || 0) - (selectedReward?.discount || 0)).toFixed(2)} & Confirm</span>
+                        <span>Pay ${Math.max(0, (barber.services.find((s: any) => s.id === selectedService)?.price || 0) - (selectedReward?.discount || 0)).toFixed(2)} & Confirm</span>
                       </>
                     ) : (
                       <>
@@ -1102,12 +1102,12 @@ export default function BarberProfilePage() {
                   <div className="bg-accent-500/20 border border-accent-400/30 rounded-lg px-3 py-2 mb-2">
                     <div className="flex items-center justify-between text-sm">
                       <span className="font-semibold">💰 Paid from Wallet</span>
-                      <span>${barber.services.find(s => s.id === selectedService)?.price}</span>
+                      <span>${barber.services.find((s: any) => s.id === selectedService)?.price}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm mt-1">
                       <span className="font-semibold">⭐ Points Earned</span>
                       <span className="text-accent-300 font-bold">
-                        +{Math.ceil((barber.services.find(s => s.id === selectedService)?.price || 0) * 1.5)} pts
+                        +{Math.ceil((barber.services.find((s: any) => s.id === selectedService)?.price || 0) * 1.5)} pts
                       </span>
                     </div>
                   </div>
@@ -1115,10 +1115,10 @@ export default function BarberProfilePage() {
                   <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg px-3 py-2 mb-2">
                     <div className="flex items-center justify-between text-sm">
                       <span className="font-semibold">💳 Pay Day-of</span>
-                      <span>${barber.services.find(s => s.id === selectedService)?.price}</span>
+                      <span>${barber.services.find((s: any) => s.id === selectedService)?.price}</span>
                     </div>
                     <div className="text-sm mt-1">
-                      <span className="font-semibold">⭐ You'll earn {Math.ceil(barber.services.find(s => s.id === selectedService)?.price || 0)} pts when you pay at the shop!</span>
+                      <span className="font-semibold">⭐ You'll earn {Math.ceil(barber.services.find((s: any) => s.id === selectedService)?.price || 0)} pts when you pay at the shop!</span>
                     </div>
                   </div>
                 )}

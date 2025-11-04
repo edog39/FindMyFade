@@ -21,6 +21,7 @@ export async function GET(
             lastName: true,
             email: true,
             phone: true,
+            verified: true,
           },
         },
         services: true,
@@ -30,7 +31,16 @@ export async function GET(
           },
         },
         portfolioItems: true,
-        reviews: true,
+        reviews: {
+          include: {
+            client: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
       },
     })
 
@@ -49,7 +59,7 @@ export async function GET(
       bio: barberProfile.bio,
       rating: barberProfile.averageRating,
       totalReviews: barberProfile.totalReviews,
-      verified: barberProfile.verified,
+      verified: barberProfile.user.verified,
       yearsExperience: barberProfile.yearsExperience,
       totalClients: barberProfile.totalReviews * 10, // Estimate
       profileImage: barberProfile.profileImage || 'https://via.placeholder.com/200x200?text=Barber',
@@ -73,19 +83,19 @@ export async function GET(
         description: s.description || `Professional ${s.name.toLowerCase()} service`,
         price: s.price,
         duration: s.duration,
-        popular: s.popular || false,
+        popular: s.isPopular || false,
       })),
       specialties: barberProfile.specialties.map(s => s.specialty.name),
       portfolio: barberProfile.portfolioItems.map(p => ({
         id: p.id,
         type: p.type,
-        url: p.imageUrl,
-        caption: p.description,
-        thumbnail: p.imageUrl,
+        url: p.url,
+        caption: p.caption,
+        thumbnail: p.thumbnail || p.url,
       })),
       reviews: barberProfile.reviews.map(r => ({
         id: r.id,
-        customerName: `${r.clientName?.split(' ')[0]} ${r.clientName?.split(' ')[1]?.[0]}.` || 'Anonymous',
+        customerName: `${r.client.firstName} ${r.client.lastName.charAt(0)}.`,
         rating: r.rating,
         date: new Date(r.createdAt).toLocaleDateString('en-US', { 
           month: 'short', 
@@ -93,7 +103,7 @@ export async function GET(
           year: 'numeric' 
         }),
         comment: r.comment,
-        verified: true,
+        verified: r.isVerified,
       })),
     }
 

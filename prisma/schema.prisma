@@ -92,6 +92,10 @@ model BarberProfile {
   instagram       String?
   website         String?
   
+  // Images
+  profileImage    String?
+  coverImage      String?
+  
   // Ratings
   averageRating   Float    @default(0.0)
   totalReviews    Int      @default(0)
