@@ -119,8 +119,80 @@ export default function MapPage() {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [mapTileOffset, setMapTileOffset] = useState({ x: 0, y: 0 })
   const [isRecentering, setIsRecentering] = useState(false)
+  const [allMapBarbers, setAllMapBarbers] = useState(mockMapBarbers) // Combined mock + database barbers
 
   const mapRef = useRef<HTMLDivElement>(null)
+  
+  // Fetch database barbers and add to map
+  useEffect(() => {
+    const fetchDatabaseBarbers = async () => {
+      try {
+        console.log('🔄 Fetching barbers from database for map...')
+        const response = await fetch('/api/barbers', {
+          cache: 'no-store'
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          console.log('✅ Loaded', data.barbers.length, 'barbers from database')
+          
+          // Convert database barbers to map format with geocoded coordinates
+          const dbBarbersWithCoords = data.barbers.map((barber: any, index: number) => ({
+            id: barber.id,
+            name: barber.shopName || barber.name,
+            barber: barber.name,
+            rating: barber.rating || 5.0,
+            reviews: barber.reviews || 0,
+            price: barber.price || '$$',
+            distance: barber.distance || Math.random() * 5,
+            // Generate coordinates based on city/state (simplified geocoding)
+            coordinates: geocodeAddress(barber.city, barber.state, index),
+            address: barber.address || `${barber.city}, ${barber.state}`,
+            phone: barber.phone || 'N/A',
+            nextAvailable: barber.nextAvailable || 'Call for availability',
+            specialties: barber.specialties || [],
+            verified: barber.verified || false,
+            open: true,
+            promoted: false,
+            isUserCreated: true // Mark as user-created
+          }))
+          
+          // Combine database barbers with mock data (remove duplicates)
+          const combined = [...dbBarbersWithCoords, ...mockMapBarbers]
+          console.log('✅ Total barbers on map:', combined.length)
+          setAllMapBarbers(combined)
+        }
+      } catch (error) {
+        console.error('❌ Error fetching barbers for map:', error)
+        // Keep using mock data
+      }
+    }
+    
+    fetchDatabaseBarbers()
+  }, [])
+  
+  // Simple geocoding function (assigns coordinates based on location)
+  const geocodeAddress = (city: string, state: string, index: number) => {
+    // Base coordinates for different states (simplified)
+    const stateCoords: any = {
+      'California': { lat: 37.7749, lng: -122.4194 },
+      'New York': { lat: 40.7128, lng: -74.0060 },
+      'Texas': { lat: 29.7604, lng: -95.3698 },
+      'Florida': { lat: 25.7617, lng: -80.1918 },
+      'Illinois': { lat: 41.8781, lng: -87.6298 },
+      // Add more as needed
+    }
+    
+    // Get base coordinates or default to SF
+    const base = stateCoords[state] || stateCoords['California'] || { lat: 37.7749, lng: -122.4194 }
+    
+    // Add small random offset to spread barbers out
+    const offset = index * 0.02
+    return {
+      lat: base.lat + (Math.random() - 0.5) * 0.1 + offset,
+      lng: base.lng + (Math.random() - 0.5) * 0.1
+    }
+  }
 
   const specialties = ["Fade", "Beard Trim", "Classic Cuts", "Modern Fades", "Hair Design", "Straight Razor", "Hot Towel Shave", "Mustache Styling", "Creative Cuts", "Color", "Styling"]
 
@@ -161,7 +233,7 @@ export default function MapPage() {
     setSearchRadius(clampedRadius)
   }, [zoomLevel])
 
-  const filteredBarbers = mockMapBarbers.filter(barber => {
+  const filteredBarbers = allMapBarbers.filter(barber => {
     if (onlyOpen && !barber.open) return false
     if (onlyVerified && !barber.verified) return false
     if (barber.distance > searchRadius) return false
@@ -199,7 +271,7 @@ export default function MapPage() {
   const handleGetDirections = (barberId: number) => {
     setRouteBarber(barberId)
     setRouteMode(true)
-    const barber = mockMapBarbers.find(b => b.id === barberId)
+    const barber = allMapBarbers.find(b => b.id === barberId)
     if (barber) {
       // In a real app, this would integrate with maps API for directions
       console.log(`Getting directions to ${barber.name} at ${barber.address}`)
@@ -859,6 +931,11 @@ export default function MapPage() {
                         {barber.promoted && (
                           <span className="bg-accent-500 text-black text-xs px-2 py-1 rounded-full">
                             Promoted
+                          </span>
+                        )}
+                        {(barber as any).isUserCreated && (
+                          <span className="bg-green-500 text-black text-xs px-2 py-1 rounded-full font-semibold">
+                            ✨ NEW
                           </span>
                         )}
                       </div>

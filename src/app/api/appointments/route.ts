@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
         shopName: apt.barber.barberProfile?.shopName || 'Barbershop',
         service: extractedService,
         date: apt.startTime.toISOString().split('T')[0], // Extract date from startTime
-        time: apt.startTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }), // Extract time from startTime
+        time: apt.startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }), // 12-hour format with AM/PM
         price: apt.totalPrice,
         status: apt.status,
         prepaid: isPrepaidFromNotes,
@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
         clientName: `${appointment.client.firstName} ${appointment.client.lastName}`,
         service: extractedService,
         date: appointment.startTime.toISOString().split('T')[0],
-        time: appointment.startTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+        time: appointment.startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }), // 12-hour format with AM/PM
         price: appointment.totalPrice,
         status: appointment.status,
         prepaid: isPrepaidFromNotes
