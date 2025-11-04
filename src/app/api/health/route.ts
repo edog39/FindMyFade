@@ -6,6 +6,17 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export async function GET() {
+  // First, diagnose the DATABASE_URL issue
+  const dbUrl = process.env.DATABASE_URL
+  const diagnostics = {
+    hasDatabaseUrl: !!dbUrl,
+    urlLength: dbUrl?.length || 0,
+    startsWithPostgresql: dbUrl?.startsWith('postgresql://') || false,
+    startsWithPostgres: dbUrl?.startsWith('postgres://') || false,
+    urlPreview: dbUrl ? dbUrl.substring(0, 25) + '...' : 'NOT SET',
+    hasQuotes: dbUrl ? (dbUrl.startsWith('"') || dbUrl.startsWith("'")) : false,
+  }
+  
   try {
     // Test database connection
     await prisma.$connect()
@@ -26,6 +37,7 @@ export async function GET() {
         users: userCount,
         barbers: barberCount
       },
+      diagnostics,
       timestamp: new Date().toISOString()
     }, {
       headers: {
@@ -43,6 +55,7 @@ export async function GET() {
       environment: process.env.NODE_ENV,
       hasDatabase: !!process.env.DATABASE_URL,
       error: error instanceof Error ? error.message : 'Unknown error',
+      diagnostics,
       timestamp: new Date().toISOString()
     }, { 
       status: 500,
