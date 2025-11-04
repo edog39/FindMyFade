@@ -39,5 +39,9 @@
     "@types/google.maps": "^3.58.1",
     "eslint": "^8.57.1",
     "eslint-config-next": "14.2.33"
+  },
+  "overrides": {
+    "glob": "^10.3.10",
+    "rimraf": "^5.0.5"
   }
 }
