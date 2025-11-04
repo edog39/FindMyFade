@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { 
   Search, 
   MapPin, 
@@ -19,6 +19,9 @@ import {
 import Link from 'next/link'
 import { usBarbers, getNearbyBarbers } from '@/data/barbers'
 import { useSearchParams, useRouter } from 'next/navigation'
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 
 // Use real US barbers data
 const allBarbers = usBarbers.map(barber => ({
@@ -102,7 +105,7 @@ const mockBarbers_OLD = [
   }
 ]
 
-export default function DiscoverPage() {
+function DiscoverPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const nearbyMode = searchParams?.get('nearby') === 'true'
@@ -615,5 +618,20 @@ export default function DiscoverPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function DiscoverPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-primary-950 via-primary-900 to-primary-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-accent-500 mx-auto mb-4"></div>
+          <p className="text-primary-300 text-lg">Loading barbers...</p>
+        </div>
+      </div>
+    }>
+      <DiscoverPageContent />
+    </Suspense>
   )
 }
