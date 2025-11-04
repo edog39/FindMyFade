@@ -23,6 +23,8 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [step, setStep] = useState(1)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -88,13 +90,28 @@ export default function SignUpPage() {
     console.log('Form data:', formData)
     console.log('User type:', userType)
     
+    setIsLoading(true)
+    setError('')
+    
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
-      alert('❌ Passwords do not match!')
+      setError('❌ Passwords do not match!')
+      setIsLoading(false)
       return
+    }
+    
+    // Validate barber-specific fields
+    if (userType === 'barber') {
+      if (!formData.shopName || !formData.address || !formData.experience) {
+        setError('❌ Please fill in all required fields (Shop Name, Address, Experience)')
+        setIsLoading(false)
+        return
+      }
     }
 
     try {
+      console.log('📤 Sending signup request...')
+      
       // Call signup API
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
@@ -115,12 +132,17 @@ export default function SignUpPage() {
         })
       })
 
+      console.log('📥 Response status:', response.status)
       const data = await response.json()
+      console.log('📥 Response data:', data)
 
       if (!response.ok) {
-        alert(`❌ ${data.error || 'Failed to create account'}`)
+        setError(`❌ ${data.error || 'Failed to create account'}`)
+        setIsLoading(false)
         return
       }
+
+      console.log('✅ Account created successfully!')
 
       // Save to localStorage for session management
       const userProfile = {
@@ -151,6 +173,8 @@ export default function SignUpPage() {
         localStorage.setItem('walletData', JSON.stringify(walletData))
       }
 
+      setIsLoading(false)
+
       // Show success message
       alert(`✅ Account created successfully! Welcome, ${formData.firstName}! 🎉`)
 
@@ -163,8 +187,9 @@ export default function SignUpPage() {
         }
       }, 100)
     } catch (error) {
-      console.error('Signup error:', error)
-      alert('❌ An error occurred during signup. Please try again.')
+      console.error('❌ Signup error:', error)
+      setError(`❌ Network error: ${error instanceof Error ? error.message : 'Please try again.'}`)
+      setIsLoading(false)
     }
   }
 
@@ -492,7 +517,7 @@ export default function SignUpPage() {
           </div>
         )}
 
-        {/* Step 3: Barber Details */}
+        {/* Step 3: Client Preferences */}
         {step === 3 && userType === 'client' && (
           <div className="card">
             <div className="flex items-center justify-center space-x-2 mb-6">
@@ -504,6 +529,13 @@ export default function SignUpPage() {
             <h2 className="font-semibold text-white text-xl mb-6 text-center">
               What Are You Looking For?
             </h2>
+
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4">
+                <p className="text-red-400 text-sm">{error}</p>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
@@ -545,15 +577,24 @@ export default function SignUpPage() {
                   type="button"
                   onClick={() => setStep(step - 1)}
                   className="flex-1 btn-secondary flex items-center justify-center space-x-2"
+                  disabled={isLoading}
                 >
                   <ChevronLeft size={18} />
                   <span>Back</span>
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 btn-primary"
+                  disabled={isLoading}
+                  className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
-                  Create Account
+                  {isLoading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <span>Create Account</span>
+                  )}
                 </button>
               </div>
 
@@ -577,6 +618,13 @@ export default function SignUpPage() {
             <h2 className="font-semibold text-white text-xl mb-6 text-center">
               Professional Details
             </h2>
+
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4">
+                <p className="text-red-400 text-sm">{error}</p>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="relative">
@@ -647,14 +695,23 @@ export default function SignUpPage() {
                   type="button"
                   onClick={() => setStep(2)}
                   className="btn-secondary px-6 py-3"
+                  disabled={isLoading}
                 >
                   Back
                 </button>
                 <button
                   type="submit"
-                  className="btn-primary flex-1"
+                  disabled={isLoading}
+                  className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
-                  Create Barber Account
+                  {isLoading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                      <span>Creating Account...</span>
+                    </>
+                  ) : (
+                    <span>Create Barber Account</span>
+                  )}
                 </button>
               </div>
             </form>
