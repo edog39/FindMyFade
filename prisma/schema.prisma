@@ -61,6 +61,7 @@ model User {
   reviewsReceived   Review[]  @relation("ReviewsReceived")
   payments          Payment[]
   notifications     Notification[]
+  faceAnalyses      FaceAnalysis[]
   favoriteBarbers   FavoriteBarber[]
   reelLikes         ReelLike[]
 
@@ -331,4 +332,39 @@ model Notification {
   createdAt DateTime @default(now())
   
   @@map("notifications")
+}
+
+model FaceAnalysis {
+  id                String   @id @default(cuid())
+  userId            String?  // Optional - can be anonymous
+  user              User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Face measurements and features
+  faceShape         String   // oval, round, square, etc.
+  faceShapeScore    Float    // confidence score 0-1
+  facialFeatures    Json     // Detailed measurements
+  
+  // AI recommendations given
+  recommendedStyles Json     // Array of recommended hairstyles
+  matchedBarbers    Json?    // Barbers matched to recommendations
+  
+  // Photo data (for learning)
+  photoHash         String?  // Hash of photo for deduplication
+  imageMetadata     Json?    // Image analysis metadata
+  
+  // Feedback and learning
+  userFeedback      String?  // Did they like the recommendation?
+  selectedStyle     String?  // Which style did they choose?
+  bookedBarber      String?  // Which barber did they book with?
+  
+  // AI model tracking
+  modelVersion      String   @default("v1.0")
+  processingTime    Int?     // milliseconds
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([faceShape])
+  @@map("face_analyses")
 }

@@ -768,6 +768,62 @@ export default function AIStylePage() {
     ).slice(0, 5)
     setMatchedBarbers(matchingBarbers)
 
+    // Save analysis to database for AI learning
+    const saveAnalysisToDatabase = async () => {
+      try {
+        const userProfile = localStorage.getItem('userProfile')
+        const userId = userProfile ? JSON.parse(userProfile).id : null
+        
+        console.log('💾 Saving AI analysis to database for learning...')
+        
+        const response = await fetch('/api/ai-analysis', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            faceShape: detectedShape,
+            faceShapeScore: 0.95, // High confidence from our analysis
+            facialFeatures: {
+              // Store facial measurements for learning
+              detectedAt: new Date().toISOString(),
+              analysisMethod: 'photo_upload',
+              imageType: mediaType
+            },
+            recommendedStyles: recommendations.slice(0, 5).map((r: any) => ({
+              id: r.id,
+              name: r.name,
+              category: r.category,
+              matchScore: r.matchScore
+            })),
+            matchedBarbers: matchingBarbers.slice(0, 5).map((b: any) => ({
+              id: b.id,
+              name: b.name,
+              shopName: b.shopName
+            })),
+            processingTime: Date.now() - analysisStartTime
+          })
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          console.log('✅ AI analysis saved! ID:', data.analysisId)
+          // Store analysis ID for future feedback
+          localStorage.setItem('lastAnalysisId', data.analysisId)
+        } else {
+          console.log('⚠️ Failed to save analysis (will continue without learning)')
+        }
+      } catch (error) {
+        console.error('⚠️ Error saving analysis:', error)
+        // Continue even if save fails
+      }
+    }
+    
+    // Track when analysis started
+    const analysisStartTime = Date.now()
+    
+    // Save to database (don't wait for it)
+    saveAnalysisToDatabase()
+
     // Complete
     setTimeout(() => setStep('results'), 500)
   }

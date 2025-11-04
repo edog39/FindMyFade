@@ -75,8 +75,11 @@ export async function GET(
           const endHour = parseInt(dayHours.end.split(':')[0])
           
           for (let hour = startHour; hour < endHour; hour++) {
-            slots.push(`${hour.toString().padStart(2, '0')}:00`)
-            slots.push(`${hour.toString().padStart(2, '0')}:30`)
+            // Convert to 12-hour format with AM/PM
+            const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
+            const ampm = hour >= 12 ? 'PM' : 'AM'
+            slots.push(`${hour12}:00 ${ampm}`)
+            slots.push(`${hour12}:30 ${ampm}`)
           }
           
           availability.push({
