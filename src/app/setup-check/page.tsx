@@ -26,7 +26,14 @@ export default function SetupCheckPage() {
   const checkHealth = async () => {
     setLoading(true)
     try {
-      const response = await fetch('/api/health')
+      // Add timestamp to prevent caching
+      const response = await fetch(`/api/health?t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      })
       const data = await response.json()
       setHealth(data)
       setIsVercel(window.location.hostname.includes('vercel.app'))
@@ -68,6 +75,18 @@ export default function SetupCheckPage() {
           <p className="text-primary-300">
             Verify your FindMyFade configuration
           </p>
+          
+          {/* Cache Warning Banner */}
+          <div className="mt-4 p-4 bg-accent-500/10 border border-accent-500/30 rounded-lg max-w-2xl mx-auto">
+            <p className="text-accent-400 text-sm font-semibold mb-1">
+              ⚡ Seeing old errors?
+            </p>
+            <p className="text-primary-300 text-xs">
+              Press <kbd className="px-2 py-1 bg-primary-800 rounded border border-primary-600">Cmd+Shift+R</kbd> (Mac) 
+              or <kbd className="px-2 py-1 bg-primary-800 rounded border border-primary-600">Ctrl+Shift+R</kbd> (Windows) 
+              to hard refresh and clear browser cache
+            </p>
+          </div>
         </div>
 
         {/* Health Check Card */}
