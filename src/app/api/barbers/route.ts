@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Format barbers for frontend
-    const formattedBarbers = barbers.map(barber => ({
+    const formattedBarbers = barbers.map((barber: any) => ({
       id: barber.barberProfile?.id || barber.id, // Use barberProfile ID for correct linking
       name: `${barber.firstName} ${barber.lastName}`,
       shopName: barber.barberProfile?.shopName || '',
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
       reviews: barber.barberProfile?.totalReviews || 0,
       distance: 0.1, // Will calculate based on user location later
       price: barber.barberProfile?.pricing || '$$',
-      specialties: barber.barberProfile?.specialties.map(s => s.specialty.name) || [],
+      specialties: barber.barberProfile?.specialties.map((s: any) => s.specialty.name) || [],
       verified: barber.verified,
       promoted: false,
       address: barber.barberProfile?.address || '',
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       bio: barber.barberProfile?.bio || '',
       yearsExperience: barber.barberProfile?.yearsExperience || 1,
       nextAvailable: 'Available',
-      services: barber.barberProfile?.services.map(s => ({
+      services: barber.barberProfile?.services.map((s: any) => ({
         id: s.id,
         name: s.name,
         price: s.price,
