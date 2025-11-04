@@ -88,7 +88,7 @@ export default function LoginPage() {
       alert(`Welcome back, ${data.user.firstName}! 🎉`)
 
       // Redirect based on user type
-      setTimeout(() => {
+    setTimeout(() => {
         if (data.user.userType === 'BARBER') {
           router.push('/barber-dashboard')
         } else {

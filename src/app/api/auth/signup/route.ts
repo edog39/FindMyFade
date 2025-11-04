@@ -9,6 +9,14 @@ export const runtime = 'nodejs'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('🔥 API: Received signup request:', { 
+      email: body.email, 
+      userType: body.userType,
+      hasShopName: !!body.shopName,
+      hasAddress: !!body.address,
+      hasExperience: !!body.experience
+    })
+    
     const { 
       firstName, 
       lastName, 
@@ -24,22 +32,49 @@ export async function POST(request: NextRequest) {
       bio
     } = body
 
+    // Validate required fields
+    if (!firstName || !lastName || !email || !phone || !password || !userType) {
+      console.log('❌ API: Missing required fields')
+      return NextResponse.json(
+        { error: 'Missing required fields: firstName, lastName, email, phone, password, or userType' },
+        { status: 400 }
+      )
+    }
+
+    // Validate barber-specific fields
+    if (userType === 'barber') {
+      if (!shopName || !address || !experience) {
+        console.log('❌ API: Missing barber-specific fields:', { shopName, address, experience })
+        return NextResponse.json(
+          { error: 'Barber accounts require: shopName, address, and experience' },
+          { status: 400 }
+        )
+      }
+    }
+
+    console.log('✅ API: All fields validated')
+
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email }
     })
 
     if (existingUser) {
+      console.log('❌ API: User already exists with email:', email)
       return NextResponse.json(
         { error: 'User with this email already exists' },
         { status: 400 }
       )
     }
 
+    console.log('✅ API: Email is available')
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
+    console.log('✅ API: Password hashed')
 
     // Create user
+    console.log('📝 API: Creating user in database...')
     const user = await prisma.user.create({
       data: {
         email,
@@ -109,6 +144,12 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    console.log('✅ API: User created successfully!', {
+      userId: user.id,
+      userType: user.userType,
+      barberProfileId: user.barberProfile?.id
+    })
+
     return NextResponse.json({
       message: 'Account created successfully',
       user: {
@@ -121,9 +162,15 @@ export async function POST(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Signup error:', error)
+    console.error('❌ API: Signup error:', error)
+    // Return detailed error message
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
     return NextResponse.json(
-      { error: 'Failed to create account' },
+      { 
+        error: 'Failed to create account', 
+        details: errorMessage,
+        hint: 'Check server logs for more information'
+      },
       { status: 500 }
     )
   }

@@ -416,7 +416,7 @@ export default function BarberProfilePage() {
         {barber.coverImage && barber.coverImage !== 'https://via.placeholder.com/800x400?text=Cover' ? (
           <img src={barber.coverImage} alt="Cover" className="w-full h-full object-cover" />
         ) : (
-          <span className="text-primary-300 text-lg">Cover Photo</span>
+        <span className="text-primary-300 text-lg">Cover Photo</span>
         )}
         
         {/* Back Button */}
@@ -449,7 +449,7 @@ export default function BarberProfilePage() {
                   <img src={barber.profileImage} alt={barber.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-primary-200 text-lg">Photo</span>
+                <span className="text-primary-200 text-lg">Photo</span>
                   </div>
                 )}
               </div>
