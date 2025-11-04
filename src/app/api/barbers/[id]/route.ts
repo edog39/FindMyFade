@@ -81,7 +81,7 @@ export async function GET(
       },
       pricing: barberProfile.pricing,
       businessHours: barberProfile.businessHours,
-      services: barberProfile.services.map(s => ({
+      services: barberProfile.services.map((s: any) => ({
         id: s.id,
         name: s.name,
         description: s.description || `Professional ${s.name.toLowerCase()} service`,
@@ -89,15 +89,15 @@ export async function GET(
         duration: s.duration,
         popular: s.isPopular || false,
       })),
-      specialties: barberProfile.specialties.map(s => s.specialty.name),
-      portfolio: barberProfile.portfolioItems.map(p => ({
+      specialties: barberProfile.specialties.map((s: any) => s.specialty.name),
+      portfolio: barberProfile.portfolioItems.map((p: any) => ({
         id: p.id,
         type: p.type,
         url: p.url,
         caption: p.caption,
         thumbnail: p.thumbnail || p.url,
       })),
-      reviews: barberProfile.reviews.map(r => ({
+      reviews: barberProfile.reviews.map((r: any) => ({
         id: r.id,
         customerName: `${r.client.firstName} ${r.client.lastName.charAt(0)}.`,
         rating: r.rating,
