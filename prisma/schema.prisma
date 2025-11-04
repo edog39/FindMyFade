@@ -163,8 +163,8 @@ model Booking {
   clientId      String
   client        User          @relation("ClientBookings", fields: [clientId], references: [id])
   barberId      String
-  barber        User          @relation("BarberBookings", fields: [barberId], references: [id])
-  barberProfile BarberProfile @relation("BarberBookings", fields: [barberId], references: [userId])
+  barber        User          @relation("BarberBookings", fields: [barberId], references: [id], map: "booking_barber_user_fk")
+  barberProfile BarberProfile @relation("BarberBookings", fields: [barberId], references: [userId], map: "booking_barber_profile_fk")
   
   appointmentDate DateTime
   startTime       DateTime
@@ -233,8 +233,8 @@ model Review {
   clientId  String
   client    User     @relation("ReviewsGiven", fields: [clientId], references: [id])
   barberId  String
-  barber    User     @relation("ReviewsReceived", fields: [barberId], references: [id])
-  barberProfile BarberProfile @relation(fields: [barberId], references: [userId])
+  barber    User     @relation("ReviewsReceived", fields: [barberId], references: [id], map: "review_barber_user_fk")
+  barberProfile BarberProfile @relation(fields: [barberId], references: [userId], map: "review_barber_profile_fk")
   
   rating    Int      // 1-5 stars
   comment   String?
