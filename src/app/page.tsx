@@ -41,12 +41,8 @@ export default function Home() {
       if (userProfile && loggedIn) {
         const profile = JSON.parse(userProfile)
         
-        // Redirect barbers to their dashboard
-        if (profile.userType === 'barber' || profile.accountType === 'barber') {
-          router.push('/barber-dashboard')
-          return
-        }
-        
+        // Allow barbers to access full site (no auto-redirect)
+        // They can browse, use AI features, etc. AND access their dashboard
         setIsLoggedIn(true)
         // Get name from signup fields (firstName + lastName)
         const fullName = profile.firstName 
@@ -142,6 +138,14 @@ export default function Home() {
                   <span className="relative z-10">Appointments</span>
                   <div className="absolute inset-0 bg-accent-500/0 group-hover:bg-accent-500/10 rounded-lg transition-all duration-300"></div>
                 </Link>
+                {userType === 'barber' && (
+                  <Link href="/barber-dashboard" className="relative text-accent-400 hover:text-accent-300 px-4 py-2 text-sm font-bold transition-all duration-300 group">
+                    <span className="relative z-10 flex items-center space-x-1">
+                      <span>💼 Dashboard</span>
+                    </span>
+                    <div className="absolute inset-0 bg-accent-500/10 group-hover:bg-accent-500/20 rounded-lg transition-all duration-300 border border-accent-500/30 group-hover:border-accent-500/50"></div>
+                  </Link>
+                )}
                 
                 {isLoggedIn ? (
                   <div className="relative profile-menu-container">
@@ -168,6 +172,15 @@ export default function Home() {
                           <p className="text-primary-400 text-xs capitalize">{userType} Account</p>
                         </div>
                         <div className="py-2">
+                          {userType === 'barber' && (
+                            <Link 
+                              href="/barber-dashboard"
+                              className="flex items-center space-x-3 px-4 py-2 hover:bg-primary-700 text-accent-400 hover:text-accent-300 transition-colors border-b border-primary-700/50"
+                            >
+                              <Scissors size={16} />
+                              <span className="text-sm font-semibold">💼 My Dashboard</span>
+                            </Link>
+                          )}
                           <Link 
                             href="/appointments"
                             className="flex items-center space-x-3 px-4 py-2 hover:bg-primary-700 text-primary-300 hover:text-white transition-colors"
@@ -277,6 +290,15 @@ export default function Home() {
                     </div>
                     
                     <div className="space-y-2">
+                      {userType === 'barber' && (
+                        <Link 
+                          href="/barber-dashboard"
+                          className="flex items-center space-x-3 bg-accent-500/20 hover:bg-accent-500/30 border border-accent-500/50 px-4 py-3 rounded-lg text-accent-400 hover:text-accent-300 transition-colors font-semibold"
+                        >
+                          <Scissors size={18} />
+                          <span>💼 My Dashboard</span>
+                        </Link>
+                      )}
                       <Link 
                         href="/appointments"
                         className="flex items-center space-x-3 bg-primary-800 hover:bg-primary-700 px-4 py-3 rounded-lg text-primary-300 hover:text-white transition-colors"

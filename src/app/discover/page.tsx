@@ -130,21 +130,38 @@ function DiscoverPageContent() {
   useEffect(() => {
     const fetchBarbers = async () => {
       try {
-        const response = await fetch('/api/barbers')
+        console.log('🔄 Fetching barbers from API...')
+        const response = await fetch('/api/barbers', {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        })
         const data = await response.json()
         
         if (response.ok && data.barbers) {
-          console.log('🔍 Loaded barbers from database:', data.barbers.length)
+          console.log('✅ Loaded barbers from database:', data.barbers.length)
+          console.log('📊 Database barbers:', data.barbers.map((b: any) => ({ id: b.id, name: b.name, shop: b.shopName })))
           
-          // Combine database barbers with default mock barbers
-          const combined = [...data.barbers, ...allBarbers]
-          console.log('🔍 Total barbers:', combined.length)
+          // Remove duplicates - prioritize database barbers over mock ones
+          const dbBarberIds = new Set(data.barbers.map((b: any) => b.id))
+          const uniqueMockBarbers = allBarbers.filter(b => !dbBarberIds.has(b.id))
+          
+          // Combine database barbers with non-duplicate mock barbers
+          const combined = [...data.barbers, ...uniqueMockBarbers]
+          console.log('✅ Total unique barbers:', combined.length)
+          console.log('   - From database:', data.barbers.length)
+          console.log('   - From mock data:', uniqueMockBarbers.length)
           
           setCombinedBarbers(combined)
           setDisplayBarbers(combined)
+        } else {
+          console.log('⚠️ API response not ok, using mock data')
+          setCombinedBarbers(allBarbers)
+          setDisplayBarbers(allBarbers)
         }
       } catch (error) {
-        console.error('Error fetching barbers:', error)
+        console.error('❌ Error fetching barbers:', error)
         // Fallback to default barbers
         setCombinedBarbers(allBarbers)
         setDisplayBarbers(allBarbers)
@@ -156,6 +173,7 @@ function DiscoverPageContent() {
         const profile = JSON.parse(userProfile)
         if (profile.preferences && profile.preferences.length > 0) {
           setClientPreferences(profile.preferences)
+          console.log('✅ Loaded client preferences:', profile.preferences)
         }
       }
     }

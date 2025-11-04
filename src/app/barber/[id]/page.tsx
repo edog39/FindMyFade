@@ -240,20 +240,37 @@ export default function BarberProfilePage() {
     const fetchBarber = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`/api/barbers/${params.id}`)
+        console.log('🔄 Fetching barber with ID:', params.id)
+        
+        const response = await fetch(`/api/barbers/${params.id}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        })
+        
+        console.log('📥 Response status:', response.status)
         
         if (response.ok) {
           const data = await response.json()
           setBarber(data.barber)
-          console.log('✅ Loaded barber from database:', data.barber)
+          console.log('✅ Loaded barber from database:', {
+            id: data.barber.id,
+            name: data.barber.name,
+            shop: data.barber.shopName,
+            services: data.barber.services?.length || 0,
+            reviews: data.barber.reviews?.length || 0,
+            hasProfileImage: !!data.barber.profileImage,
+            hasCoverImage: !!data.barber.coverImage
+          })
         } else {
           // Fallback to mock data
-          console.log('⚠️ Barber not in database, using mock data')
+          console.log('⚠️ Barber not in database (status:', response.status, '), using mock data')
           const mockData = getBarberById(params.id as string)
           setBarber(mockData || mockBarberData_FALLBACK)
         }
       } catch (error) {
-        console.error('Error fetching barber:', error)
+        console.error('❌ Error fetching barber:', error)
         // Fallback to mock data
         const mockData = getBarberById(params.id as string)
         setBarber(mockData || mockBarberData_FALLBACK)

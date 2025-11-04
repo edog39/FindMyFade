@@ -55,6 +55,41 @@ export async function GET(
       )
     }
 
+    // Generate availability for next 14 days based on business hours
+    const generateAvailability = () => {
+      const availability = []
+      const today = new Date()
+      
+      for (let i = 0; i < 14; i++) {
+        const date = new Date(today)
+        date.setDate(today.getDate() + i)
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
+        const dateStr = date.toISOString().split('T')[0]
+        
+        const dayHours = (barberProfile.businessHours as any)[dayName]
+        
+        if (dayHours && dayHours.enabled) {
+          // Generate time slots
+          const slots = []
+          const startHour = parseInt(dayHours.start.split(':')[0])
+          const endHour = parseInt(dayHours.end.split(':')[0])
+          
+          for (let hour = startHour; hour < endHour; hour++) {
+            slots.push(`${hour.toString().padStart(2, '0')}:00`)
+            slots.push(`${hour.toString().padStart(2, '0')}:30`)
+          }
+          
+          availability.push({
+            date: dateStr,
+            day: dayName,
+            slots: slots
+          })
+        }
+      }
+      
+      return availability
+    }
+    
     // Format the response
     const formattedBarber = {
       id: barberProfile.id,
@@ -81,6 +116,8 @@ export async function GET(
       },
       pricing: barberProfile.pricing,
       businessHours: barberProfile.businessHours,
+      hours: barberProfile.businessHours, // Alias for compatibility
+      availability: generateAvailability(), // Generate time slots from business hours
       services: barberProfile.services.map((s: any) => ({
         id: s.id,
         name: s.name,
