@@ -35,10 +35,10 @@ export async function GET(request: NextRequest) {
 
     // Format barbers for frontend
     const formattedBarbers = barbers.map(barber => ({
-      id: barber.id,
+      id: barber.barberProfile?.id || barber.id, // Use barberProfile ID for correct linking
       name: `${barber.firstName} ${barber.lastName}`,
       shopName: barber.barberProfile?.shopName || '',
-      image: barber.avatar || 'https://via.placeholder.com/400x300?text=Barber',
+      image: barber.barberProfile?.profileImage || barber.avatar || 'https://via.placeholder.com/400x300?text=Barber',
       rating: barber.barberProfile?.averageRating || 5.0,
       reviews: barber.barberProfile?.totalReviews || 0,
       distance: 0.1, // Will calculate based on user location later
