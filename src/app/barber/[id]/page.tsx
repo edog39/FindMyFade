@@ -232,10 +232,40 @@ export default function BarberProfilePage() {
   const [availableRewards, setAvailableRewards] = useState<any[]>([])
   const [selectedReward, setSelectedReward] = useState<any>(null)
   const [paymentMethod, setPaymentMethod] = useState<'prepay' | 'pay_later'>('prepay')
+  const [barber, setBarber] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
-  // Get real barber data from database
-  const barberData = getBarberById(params.id as string)
-  const barber = barberData || mockBarberData_FALLBACK
+  // Fetch barber from database
+  useEffect(() => {
+    const fetchBarber = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(`/api/barbers/${params.id}`)
+        
+        if (response.ok) {
+          const data = await response.json()
+          setBarber(data.barber)
+          console.log('✅ Loaded barber from database:', data.barber)
+        } else {
+          // Fallback to mock data
+          console.log('⚠️ Barber not in database, using mock data')
+          const mockData = getBarberById(params.id as string)
+          setBarber(mockData || mockBarberData_FALLBACK)
+        }
+      } catch (error) {
+        console.error('Error fetching barber:', error)
+        // Fallback to mock data
+        const mockData = getBarberById(params.id as string)
+        setBarber(mockData || mockBarberData_FALLBACK)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (params.id) {
+      fetchBarber()
+    }
+  }, [params.id])
 
   // Load user data from localStorage
   useEffect(() => {
@@ -367,11 +397,27 @@ export default function BarberProfilePage() {
     }, 6000)
   }
 
+  // Show loading state
+  if (loading || !barber) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-950 via-primary-900 to-primary-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-accent-500 mx-auto mb-4"></div>
+          <p className="text-primary-300 text-lg">Loading barber profile...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-950 via-primary-900 to-primary-800">
       {/* Cover Image */}
-      <div className="relative h-64 md:h-96 bg-gradient-to-br from-primary-700 to-primary-600 flex items-center justify-center">
-        <span className="text-primary-300 text-lg">Cover Photo</span>
+      <div className="relative h-64 md:h-96 bg-gradient-to-br from-primary-700 to-primary-600 flex items-center justify-center overflow-hidden">
+        {barber.coverImage && barber.coverImage !== 'https://via.placeholder.com/800x400?text=Cover' ? (
+          <img src={barber.coverImage} alt="Cover" className="w-full h-full object-cover" />
+        ) : (
+          <span className="text-primary-300 text-lg">Cover Photo</span>
+        )}
         
         {/* Back Button */}
         <button 
@@ -398,8 +444,14 @@ export default function BarberProfilePage() {
           <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
             {/* Profile Image */}
             <div className="relative">
-              <div className="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-primary-600 to-primary-500 rounded-full flex items-center justify-center">
-                <span className="text-primary-200 text-lg">Photo</span>
+              <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-primary-800 bg-gradient-to-br from-primary-600 to-primary-500">
+                {barber.profileImage && barber.profileImage !== 'https://via.placeholder.com/200x200?text=Barber' ? (
+                  <img src={barber.profileImage} alt={barber.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-primary-200 text-lg">Photo</span>
+                  </div>
+                )}
               </div>
               {barber.verified && (
                 <div className="absolute -bottom-2 -right-2 bg-green-500 text-white p-1 rounded-full">

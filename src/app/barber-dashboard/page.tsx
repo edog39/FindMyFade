@@ -109,16 +109,11 @@ export default function BarberDashboardPage() {
         setAvailability(defaultAvailability)
       }
 
-      // Find my barber ID from user-created barbers
-      const userCreatedBarbers = JSON.parse(localStorage.getItem('userCreatedBarbers') || '[]')
+      // Get barber profile ID from user profile (set during signup)
       if (userProfile) {
         const profile = JSON.parse(userProfile)
-        const myBarber = userCreatedBarbers.find((b: any) => 
-          b.name === `${profile.firstName} ${profile.lastName}` ||
-          b.shopName === profile.shopName
-        )
-        if (myBarber) {
-          setMyBarberId(myBarber.id)
+        if (profile.barberProfileId) {
+          setMyBarberId(profile.barberProfileId)
         }
       }
     }
