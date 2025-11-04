@@ -643,7 +643,7 @@ export default function AIStylePage() {
   }
 
   const startAnalysis = async () => {
-    // Step 1: Analyze facial features
+    // Step 1: Analyze facial features with REAL AI
     setAnalysisProgress(0)
     const analysisInterval = setInterval(() => {
       setAnalysisProgress(prev => {
@@ -655,30 +655,67 @@ export default function AIStylePage() {
       })
     }, 200)
 
-    // Wait for analysis to complete
-    await new Promise(resolve => setTimeout(resolve, 2200))
-
-    // Detect face shape
-    const shapes = ['Oval', 'Square', 'Round', 'Heart', 'Diamond', 'Oblong']
-    const detectedShape = shapes[Math.floor(Math.random() * shapes.length)]
-    setFaceShape(detectedShape)
-    
-    // Generate detailed facial analysis
-    const analysis = {
-      faceShape: detectedShape,
-      jawlineDefinition: Math.floor(Math.random() * 30) + 70,
-      foreheadSize: ['Small', 'Medium', 'Large'][Math.floor(Math.random() * 3)],
-      hairline: ['Straight', 'Rounded', 'Widow\'s Peak', 'Receding'][Math.floor(Math.random() * 4)],
-      symmetry: Math.floor(Math.random() * 15) + 85,
-      facialProportions: {
-        foreheadToNose: Math.floor(Math.random() * 10) + 30,
-        noseToLip: Math.floor(Math.random() * 10) + 25,
-        lipToChin: Math.floor(Math.random() * 10) + 30,
-      },
-      cheekbones: ['Prominent', 'Moderate', 'Subtle'][Math.floor(Math.random() * 3)],
-      confidence: Math.floor(Math.random() * 10) + 90
+    try {
+      console.log('🤖 Calling OpenAI Vision API for face analysis...')
+      
+      // Call the real AI API
+      const response = await fetch('/api/analyze-face', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: uploadedImage || uploadedVideo })
+      })
+      
+      const { analysis } = await response.json()
+      
+      // Clear progress and set to complete
+      clearInterval(analysisInterval)
+      setAnalysisProgress(100)
+      
+      console.log('✅ AI Analysis complete:', analysis)
+      
+      if (analysis.usingMockAI) {
+        console.warn('⚠️ Using mock AI (no OpenAI API key found)')
+      } else {
+        console.log('🎉 Using REAL OpenAI Vision AI!')
+      }
+      
+      // Use the AI's detected face shape
+      const detectedShape = analysis.faceShape
+      setFaceShape(detectedShape)
+      
+      // Use the full AI analysis
+      setFacialAnalysis(analysis)
+      
+    } catch (error) {
+      console.error('❌ Error during AI analysis:', error)
+      clearInterval(analysisInterval)
+      setAnalysisProgress(100)
+      
+      // Fallback to basic detection
+      const shapes = ['Oval', 'Square', 'Round', 'Heart', 'Diamond', 'Oblong']
+      const detectedShape = shapes[Math.floor(Math.random() * shapes.length)]
+      setFaceShape(detectedShape)
+      
+      const analysis = {
+        faceShape: detectedShape,
+        jawlineDefinition: 75,
+        foreheadSize: 'Medium',
+        hairline: 'Straight',
+        symmetry: 85,
+        facialProportions: {
+          foreheadToNose: 33,
+          noseToLip: 33,
+          lipToChin: 33,
+        },
+        cheekbones: 'Moderate',
+        confidence: 70,
+        usingMockAI: true,
+        error: true
+      }
+      setFacialAnalysis(analysis)
     }
-    setFacialAnalysis(analysis)
+    
+    const detectedShape = facialAnalysis?.faceShape || faceShape
 
     // Step 2: Web search for trending hairstyles
     setStep('searching')
