@@ -81,8 +81,8 @@ export default function AppointmentsPage() {
           } catch (error) {
             console.error('❌ Error fetching appointments:', error)
             // Fallback to localStorage
-            const savedBookings = localStorage.getItem('userBookings')
-            if (savedBookings) {
+      const savedBookings = localStorage.getItem('userBookings')
+      if (savedBookings) {
               setBookings(JSON.parse(savedBookings))
             }
           }
