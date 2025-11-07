@@ -9,30 +9,17 @@ export async function POST(req: Request) {
     
     // Check if OpenAI API key exists
     if (!process.env.OPENAI_API_KEY) {
-      console.warn('⚠️ OPENAI_API_KEY not found - using mock AI')
-      
-      // Fallback to mock analysis if no API key
-      const shapes = ['Oval', 'Square', 'Round', 'Heart', 'Diamond', 'Oblong']
-      const mockAnalysis = {
-        faceShape: shapes[Math.floor(Math.random() * shapes.length)],
-        jawlineDefinition: Math.floor(Math.random() * 30) + 70,
-        foreheadSize: ['Small', 'Medium', 'Large'][Math.floor(Math.random() * 3)],
-        hairline: ['Straight', 'Rounded', 'Widow\'s Peak', 'Receding'][Math.floor(Math.random() * 4)],
-        symmetry: Math.floor(Math.random() * 15) + 85,
-        facialProportions: {
-          foreheadToNose: Math.floor(Math.random() * 10) + 30,
-          noseToLip: Math.floor(Math.random() * 10) + 25,
-          lipToChin: Math.floor(Math.random() * 10) + 30,
+      console.error('❌ OPENAI_API_KEY not found')
+      return Response.json(
+        { 
+          error: 'OpenAI API key not configured',
+          message: 'Please add your OPENAI_API_KEY to the environment variables to use AI face analysis.'
         },
-        cheekbones: ['Prominent', 'Moderate', 'Subtle'][Math.floor(Math.random() * 3)],
-        confidence: Math.floor(Math.random() * 10) + 90,
-        usingMockAI: true
-      }
-      
-      return Response.json({ analysis: mockAnalysis })
+        { status: 503 } // Service Unavailable
+      )
     }
 
-    console.log('🤖 Starting real AI face analysis with OpenAI Vision...')
+    console.log('🤖 Starting AI face analysis with OpenAI Vision...')
     
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
     
@@ -87,62 +74,65 @@ Be professional and accurate. This will be used to recommend hairstyles.`
     console.log('🤖 Raw AI response:', content)
     
     // Parse the JSON response
-    let analysis
     try {
       // Remove any markdown code blocks if present
       const cleanedContent = content?.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-      analysis = JSON.parse(cleanedContent || '{}')
-      analysis.usingMockAI = false
+      const analysis = JSON.parse(cleanedContent || '{}')
+      
+      // Validate that we have the required fields
+      if (!analysis.faceShape || !analysis.confidence) {
+        throw new Error('Invalid analysis structure received from OpenAI')
+      }
+      
       console.log('✅ Successfully parsed AI analysis:', analysis)
+      return Response.json({ analysis })
+      
     } catch (parseError) {
       console.error('❌ Failed to parse AI response:', parseError)
       console.error('Content was:', content)
       
-      // Fallback to mock if parsing fails
-      const shapes = ['Oval', 'Square', 'Round', 'Heart', 'Diamond', 'Oblong']
-      analysis = {
-        faceShape: shapes[Math.floor(Math.random() * shapes.length)],
-        jawlineDefinition: Math.floor(Math.random() * 30) + 70,
-        foreheadSize: 'Medium',
-        hairline: 'Straight',
-        symmetry: Math.floor(Math.random() * 15) + 85,
-        facialProportions: {
-          foreheadToNose: 35,
-          noseToLip: 28,
-          lipToChin: 32,
+      return Response.json(
+        { 
+          error: 'Failed to parse AI response',
+          message: 'OpenAI returned an invalid response. Please try again.',
+          details: parseError instanceof Error ? parseError.message : 'Unknown error'
         },
-        cheekbones: 'Moderate',
-        confidence: 75,
-        usingMockAI: true,
-        parseError: true
-      }
+        { status: 500 }
+      )
     }
-    
-    return Response.json({ analysis })
     
   } catch (error: any) {
     console.error('❌ Error in face analysis API:', error)
     
-    // Return mock analysis on error
-    const shapes = ['Oval', 'Square', 'Round', 'Heart', 'Diamond', 'Oblong']
-    const mockAnalysis = {
-      faceShape: shapes[Math.floor(Math.random() * shapes.length)],
-      jawlineDefinition: Math.floor(Math.random() * 30) + 70,
-      foreheadSize: 'Medium',
-      hairline: 'Straight',
-      symmetry: Math.floor(Math.random() * 15) + 85,
-      facialProportions: {
-        foreheadToNose: 35,
-        noseToLip: 28,
-        lipToChin: 32,
-      },
-      cheekbones: 'Moderate',
-      confidence: 70,
-      usingMockAI: true,
-      error: error.message
+    // Check if it's an OpenAI API error
+    if (error.status === 401) {
+      return Response.json(
+        { 
+          error: 'Invalid OpenAI API key',
+          message: 'The OpenAI API key is invalid or expired. Please check your configuration.'
+        },
+        { status: 401 }
+      )
     }
     
-    return Response.json({ analysis: mockAnalysis }, { status: 200 })
+    if (error.status === 429) {
+      return Response.json(
+        { 
+          error: 'Rate limit exceeded',
+          message: 'OpenAI rate limit exceeded. Please try again in a few minutes.'
+        },
+        { status: 429 }
+      )
+    }
+    
+    return Response.json(
+      { 
+        error: 'Face analysis failed',
+        message: 'An error occurred during face analysis. Please try again.',
+        details: error.message || 'Unknown error'
+      },
+      { status: 500 }
+    )
   }
 }
 

@@ -321,8 +321,7 @@ const faceShapeDescriptions: Record<string, string> = {
   'Oblong': 'Face is longer than it is wide. Elongated proportions with balanced features.'
 }
 
-// Keep for backward compatibility
-const mockRecommendations = faceShapeDatabase.Oval
+// Removed mockRecommendations - now using only real OpenAI analysis
 
 // Comprehensive Fade & Taper Guide
 const fadeTypesGuide = {
@@ -628,7 +627,8 @@ export default function AIStylePage() {
 
   const handleShareStyle = (styleId: number) => {
     // Copy link to clipboard or open share dialog
-    const style = mockRecommendations.find(r => r.id === styleId)
+    const recommendations = getRecommendationsForFaceShape(faceShape, 'male')
+    const style = recommendations.find(r => r.id === styleId)
     if (style && navigator.share) {
       navigator.share({
         title: `Check out this ${style.name} hairstyle!`,
@@ -665,19 +665,25 @@ export default function AIStylePage() {
         body: JSON.stringify({ image: uploadedImage || uploadedVideo })
       })
       
-      const { analysis } = await response.json()
+      // Check if request was successful
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Face analysis failed')
+      }
+      
+      const { analysis, error } = await response.json()
+      
+      // Check for error in response
+      if (error) {
+        throw new Error(error)
+      }
       
       // Clear progress and set to complete
       clearInterval(analysisInterval)
       setAnalysisProgress(100)
       
       console.log('✅ AI Analysis complete:', analysis)
-      
-      if (analysis.usingMockAI) {
-        console.warn('⚠️ Using mock AI (no OpenAI API key found)')
-      } else {
-        console.log('🎉 Using REAL OpenAI Vision AI!')
-      }
+      console.log('🎉 Using OpenAI Vision API!')
       
       // Use the AI's detected face shape
       const detectedShape = analysis.faceShape
@@ -689,30 +695,12 @@ export default function AIStylePage() {
     } catch (error) {
       console.error('❌ Error during AI analysis:', error)
       clearInterval(analysisInterval)
-      setAnalysisProgress(100)
+      setAnalysisProgress(0)
+      setStep('upload')
       
-      // Fallback to basic detection
-      const shapes = ['Oval', 'Square', 'Round', 'Heart', 'Diamond', 'Oblong']
-      const detectedShape = shapes[Math.floor(Math.random() * shapes.length)]
-      setFaceShape(detectedShape)
-      
-      const analysis = {
-        faceShape: detectedShape,
-        jawlineDefinition: 75,
-        foreheadSize: 'Medium',
-        hairline: 'Straight',
-        symmetry: 85,
-        facialProportions: {
-          foreheadToNose: 33,
-          noseToLip: 33,
-          lipToChin: 33,
-        },
-        cheekbones: 'Moderate',
-        confidence: 70,
-        usingMockAI: true,
-        error: true
-      }
-      setFacialAnalysis(analysis)
+      // Show error to user
+      alert(`AI Analysis Error: ${error instanceof Error ? error.message : 'Failed to analyze face. Please ensure OpenAI API key is configured and try again.'}`)
+      return
     }
     
     const detectedShape = facialAnalysis?.faceShape || faceShape
@@ -735,8 +723,8 @@ export default function AIStylePage() {
     // Perform web search for hairstyles
     const searchQuery = `best hairstyles for ${detectedShape.toLowerCase()} face shape ${new Date().getFullYear()}`
     
-    // In a real implementation, this would call an actual web search API
-    // For now, we'll simulate it with mock data
+    // Note: This is just for UI display - actual recommendations come from AI-detected face shape
+    // Web search results shown here are curated examples (could integrate real search API in future)
     await new Promise(resolve => setTimeout(resolve, 1800))
     
     const webResults = [
