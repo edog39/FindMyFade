@@ -78,13 +78,29 @@ Be professional and accurate. This will be used to recommend hairstyles.`
     
     // Parse the JSON response
     try {
-      // Remove any markdown code blocks if present
-      const cleanedContent = content?.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-      const analysis = JSON.parse(cleanedContent || '{}')
+      if (!content) {
+        throw new Error('OpenAI returned empty response')
+      }
+      
+      // Try multiple parsing strategies
+      let cleanedContent = content.trim()
+      
+      // Remove markdown code blocks (all variations)
+      cleanedContent = cleanedContent.replace(/```json\s*/g, '').replace(/```\s*/g, '')
+      
+      // Try to extract JSON if it's embedded in text
+      const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        cleanedContent = jsonMatch[0]
+      }
+      
+      console.log('🔍 Cleaned content for parsing:', cleanedContent.substring(0, 200))
+      
+      const analysis = JSON.parse(cleanedContent)
       
       // Validate that we have the required fields
       if (!analysis.faceShape || !analysis.confidence) {
-        throw new Error('Invalid analysis structure received from OpenAI')
+        throw new Error(`Missing required fields. Got: ${Object.keys(analysis).join(', ')}`)
       }
       
       console.log('✅ Successfully parsed AI analysis:', analysis)
@@ -92,7 +108,8 @@ Be professional and accurate. This will be used to recommend hairstyles.`
       
     } catch (parseError) {
       console.error('❌ Failed to parse AI response:', parseError)
-      console.error('Content was:', content)
+      console.error('❌ Raw content was:', content)
+      console.error('❌ Content length:', content?.length || 0)
       
       return Response.json(
         { 
