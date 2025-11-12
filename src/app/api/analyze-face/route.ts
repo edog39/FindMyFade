@@ -34,41 +34,33 @@ export async function POST(req: Request) {
         content: [
           {
             type: "text",
-            text: `CRITICAL: You MUST respond with ONLY valid JSON. No explanations, no apologies, no text. ONLY JSON.
+            text: `You are a professional barber analyzing a client's face to recommend hairstyles.
 
-Analyze the face in this image and return this EXACT JSON structure (fill in the values):
+ANALYZE THE ACTUAL IMAGE and return a JSON object with YOUR ANALYSIS (not the example values).
 
+Required JSON format:
 {
-  "faceShape": "Oval",
-  "jawlineDefinition": 85,
-  "foreheadSize": "Medium",
-  "hairline": "Straight",
-  "symmetry": 92,
-  "cheekbones": "Prominent",
+  "faceShape": "[YOUR ANALYSIS - must be: Oval, Square, Round, Heart, Diamond, or Oblong]",
+  "jawlineDefinition": [YOUR ANALYSIS - number 0-100 based on how sharp/defined the jawline is],
+  "foreheadSize": "[YOUR ANALYSIS - must be: Small, Medium, or Large]",
+  "hairline": "[YOUR ANALYSIS - must be: Straight, Rounded, Widow's Peak, or Receding]",
+  "symmetry": [YOUR ANALYSIS - number 0-100 for facial symmetry],
+  "cheekbones": "[YOUR ANALYSIS - must be: Prominent, Moderate, or Subtle]",
   "facialProportions": {
-    "foreheadToNose": 35,
-    "noseToLip": 28,
-    "lipToChin": 32
+    "foreheadToNose": [YOUR ANALYSIS - number ~30-40],
+    "noseToLip": [YOUR ANALYSIS - number ~25-35],
+    "lipToChin": [YOUR ANALYSIS - number ~25-35]
   },
-  "confidence": 94
+  "confidence": [YOUR ANALYSIS - number 0-100 for how confident you are]
 }
 
-RULES:
-- faceShape: MUST be ONE of: Oval, Square, Round, Heart, Diamond, Oblong
-- jawlineDefinition: Number 0-100
-- foreheadSize: MUST be ONE of: Small, Medium, Large  
-- hairline: MUST be ONE of: Straight, Rounded, Widow's Peak, Receding
-- symmetry: Number 0-100
-- cheekbones: MUST be ONE of: Prominent, Moderate, Subtle
-- facialProportions: Numbers should sum to ~95-100
-- confidence: Number 0-100
-
-IMPORTANT: 
-- If you cannot clearly see a face, set confidence to 50 and make best estimates
-- NEVER respond with text explanations
-- NEVER start with "I'm sorry" or any apology
-- Your response must START with { and END with }
-- Do NOT wrap in markdown code blocks`
+CRITICAL INSTRUCTIONS:
+- ANALYZE THE IMAGE - do NOT return the example values shown above
+- LOOK at the actual face shape, jawline, forehead, hairline in the photo
+- Base ALL values on what you SEE in the image
+- The bracketed text [YOUR ANALYSIS] is a placeholder - replace with actual values
+- Return ONLY valid JSON, no explanations
+- If unclear, estimate but set lower confidence (50-70)`
           },
           {
             type: "image_url",
