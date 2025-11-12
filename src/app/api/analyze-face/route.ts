@@ -7,6 +7,9 @@ export async function POST(req: Request) {
   try {
     const { image } = await req.json()
     
+    console.log('📸 Image data received, length:', image?.length || 0)
+    console.log('📸 Image format:', image?.substring(0, 50) + '...')
+    
     // Check if OpenAI API key exists
     if (!process.env.OPENAI_API_KEY) {
       console.error('❌ OPENAI_API_KEY not found')
@@ -103,6 +106,11 @@ Be professional and accurate. This will be used to recommend hairstyles.`
     
   } catch (error: any) {
     console.error('❌ Error in face analysis API:', error)
+    console.error('❌ Error type:', error.constructor.name)
+    console.error('❌ Error status:', error.status)
+    console.error('❌ Error code:', error.code)
+    console.error('❌ Error message:', error.message)
+    console.error('❌ Full error object:', JSON.stringify(error, null, 2))
     
     // Check if it's an OpenAI API error
     if (error.status === 401) {
@@ -122,6 +130,39 @@ Be professional and accurate. This will be used to recommend hairstyles.`
           message: 'OpenAI rate limit exceeded. Please try again in a few minutes.'
         },
         { status: 429 }
+      )
+    }
+    
+    if (error.status === 400) {
+      return Response.json(
+        { 
+          error: 'Bad request',
+          message: 'Invalid image format or size. Please try a different image.',
+          details: error.message || 'Image may be too large or in an unsupported format'
+        },
+        { status: 400 }
+      )
+    }
+    
+    if (error.status === 403 || error.code === 'content_policy_violation') {
+      return Response.json(
+        { 
+          error: 'Content policy violation',
+          message: 'Image violates OpenAI content policy. Please try a different image.',
+          details: error.message
+        },
+        { status: 403 }
+      )
+    }
+    
+    if (error.status === 402 || error.code === 'insufficient_quota') {
+      return Response.json(
+        { 
+          error: 'Insufficient quota',
+          message: 'OpenAI account has insufficient credits. Please add billing information.',
+          details: error.message
+        },
+        { status: 402 }
       )
     }
     
