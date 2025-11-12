@@ -28,14 +28,16 @@ export async function POST(req: Request) {
     
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
+      response_format: { type: "json_object" },
       messages: [{
         role: "user",
         content: [
           {
             type: "text",
-            text: `You are a professional barber and facial analysis expert. Analyze this person's face in detail.
+            text: `CRITICAL: You MUST respond with ONLY valid JSON. No explanations, no apologies, no text. ONLY JSON.
 
-Return ONLY a valid JSON object (no markdown, no code blocks) with this EXACT structure:
+Analyze the face in this image and return this EXACT JSON structure (fill in the values):
+
 {
   "faceShape": "Oval",
   "jawlineDefinition": 85,
@@ -51,17 +53,22 @@ Return ONLY a valid JSON object (no markdown, no code blocks) with this EXACT st
   "confidence": 94
 }
 
-Rules:
-- faceShape: Choose ONE from: Oval, Square, Round, Heart, Diamond, Oblong
-- jawlineDefinition: Number 0-100 (how defined/sharp the jawline is)
-- foreheadSize: Choose ONE from: Small, Medium, Large
-- hairline: Choose ONE from: Straight, Rounded, Widow's Peak, Receding
-- symmetry: Number 0-100 (facial symmetry score)
-- cheekbones: Choose ONE from: Prominent, Moderate, Subtle
-- facialProportions: All numbers should add up to approximately 95-100
-- confidence: Number 0-100 (your confidence in this analysis)
+RULES:
+- faceShape: MUST be ONE of: Oval, Square, Round, Heart, Diamond, Oblong
+- jawlineDefinition: Number 0-100
+- foreheadSize: MUST be ONE of: Small, Medium, Large  
+- hairline: MUST be ONE of: Straight, Rounded, Widow's Peak, Receding
+- symmetry: Number 0-100
+- cheekbones: MUST be ONE of: Prominent, Moderate, Subtle
+- facialProportions: Numbers should sum to ~95-100
+- confidence: Number 0-100
 
-Be professional and accurate. This will be used to recommend hairstyles.`
+IMPORTANT: 
+- If you cannot clearly see a face, set confidence to 50 and make best estimates
+- NEVER respond with text explanations
+- NEVER start with "I'm sorry" or any apology
+- Your response must START with { and END with }
+- Do NOT wrap in markdown code blocks`
           },
           {
             type: "image_url",
@@ -80,6 +87,15 @@ Be professional and accurate. This will be used to recommend hairstyles.`
     try {
       if (!content) {
         throw new Error('OpenAI returned empty response')
+      }
+      
+      // Check if OpenAI returned text instead of JSON
+      if (content.toLowerCase().includes("i'm sorry") || 
+          content.toLowerCase().includes("i cannot") ||
+          content.toLowerCase().includes("i can't") ||
+          !content.trim().startsWith('{')) {
+        console.error('❌ OpenAI returned text instead of JSON:', content)
+        throw new Error('OpenAI could not analyze the image. Please ensure the image shows a clear face and try again.')
       }
       
       // Try multiple parsing strategies
