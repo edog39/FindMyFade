@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { 
   Camera, 
   Upload, 
@@ -471,6 +471,10 @@ export default function AIStylePage() {
   const [quizStep, setQuizStep] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
+  const [showCamera, setShowCamera] = useState(false)
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
 
   // Helper function to compress and resize images
   const compressImage = (file: File): Promise<string> => {
@@ -611,6 +615,94 @@ export default function AIStylePage() {
     }
     reader.readAsDataURL(file)
   }
+
+  // Camera functions
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'user', // Use front camera
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } 
+      })
+      
+      setCameraStream(stream)
+      setShowCamera(true)
+      
+      // Attach stream to video element
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+      }
+    } catch (error: any) {
+      console.error('Error accessing camera:', error)
+      alert(`Error accessing camera: ${error.message || 'Camera access denied. Please allow camera access and try again.'}`)
+    }
+  }
+
+  const stopCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop())
+      setCameraStream(null)
+    }
+    setShowCamera(false)
+    
+    if (videoRef.current) {
+      videoRef.current.srcObject = null
+    }
+  }
+
+  const capturePhoto = async () => {
+    if (!videoRef.current || !canvasRef.current) {
+      return
+    }
+
+    try {
+      const video = videoRef.current
+      const canvas = canvasRef.current
+      const ctx = canvas.getContext('2d')
+      
+      if (!ctx) {
+        throw new Error('Failed to get canvas context')
+      }
+
+      // Set canvas dimensions to match video
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+
+      // Draw video frame to canvas
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+      // Convert canvas to blob
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          throw new Error('Failed to capture photo')
+        }
+
+        // Create a File object from the blob
+        const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' })
+
+        // Stop camera
+        stopCamera()
+
+        // Process the captured photo through the upload handler
+        await handleImageUpload(file)
+      }, 'image/jpeg', 0.95)
+    } catch (error: any) {
+      console.error('Error capturing photo:', error)
+      alert(`Error capturing photo: ${error.message || 'Failed to capture photo. Please try again.'}`)
+    }
+  }
+
+  // Cleanup camera stream on unmount
+  useEffect(() => {
+    return () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop())
+        setCameraStream(null)
+      }
+    }
+  }, [cameraStream])
 
   // Generate AI preview image for a specific hairstyle
   const generateAIPreview = async (sourceImage: string, styleName: string, styleId: number): Promise<string> => {
@@ -817,10 +909,18 @@ export default function AIStylePage() {
       if (!response.ok) {
         let errorData: any
         try {
-          errorData = await response.json()
-        } catch (parseError) {
+          const errorText = await response.text()
+          console.error('❌ Error response text:', errorText)
+          
+          if (!errorText || errorText.trim().length === 0) {
+            throw new Error(`Server error (${response.status}): ${response.statusText || 'Empty response from server'}`)
+          }
+          
+          errorData = JSON.parse(errorText)
+        } catch (parseError: any) {
+          console.error('❌ Failed to parse error response:', parseError)
           // If we can't parse the error response, use status text
-          throw new Error(`Server error (${response.status}): ${response.statusText || 'Failed to analyze face'}`)
+          throw new Error(`Server error (${response.status}): ${response.statusText || 'Failed to analyze face. Server returned empty or invalid response.'}`)
         }
         
         const errorMessage = errorData.details 
@@ -832,22 +932,36 @@ export default function AIStylePage() {
       // Parse successful response
       let responseData: any
       try {
-        responseData = await response.json()
-      } catch (parseError) {
-        throw new Error('Failed to parse server response. The server may be experiencing issues. Please try again.')
+        const responseText = await response.text()
+        console.log('📦 Raw response text length:', responseText.length)
+        console.log('📦 Raw response text preview:', responseText.substring(0, 200))
+        
+        if (!responseText || responseText.trim().length === 0) {
+          throw new Error('Server returned empty response. Please try again.')
+        }
+        
+        responseData = JSON.parse(responseText)
+        console.log('✅ Parsed response data:', responseData)
+      } catch (parseError: any) {
+        console.error('❌ Failed to parse response:', parseError)
+        throw new Error(`Failed to parse server response: ${parseError.message || 'Invalid JSON'}. Please try again.`)
       }
       
-      const { analysis, error } = responseData
+      const { analysis, error } = responseData || {}
       
       // Check for error in response
       if (error) {
-        throw new Error(error)
+        console.error('❌ Error in response:', error)
+        throw new Error(typeof error === 'string' ? error : (error.message || 'Unknown error'))
       }
       
       // Validate analysis exists
       if (!analysis) {
-        throw new Error('No analysis data received from server. Please try again.')
+        console.error('❌ No analysis in response. Response data:', responseData)
+        throw new Error('No analysis data received from server. The server may have returned an empty response. Please try again.')
       }
+      
+      console.log('✅ Analysis received:', analysis)
       
       // Clear progress and set to complete
       clearInterval(analysisInterval)
@@ -1336,6 +1450,13 @@ export default function AIStylePage() {
                     <Upload className="w-5 h-5 mr-2" />
                     Choose Photo
                   </button>
+                  <button
+                    onClick={startCamera}
+                    className="btn-primary px-6 py-3 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700"
+                  >
+                    <Camera className="w-5 h-5 mr-2" />
+                    Take Photo
+                  </button>
                   <button 
                     onClick={() => videoInputRef.current?.click()}
                     className="btn-secondary px-6 py-3"
@@ -1375,6 +1496,63 @@ export default function AIStylePage() {
                 </div>
               </div>
             </div>
+
+            {/* Camera View */}
+            {showCamera && (
+              <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+                <div className="max-w-2xl w-full">
+                  <div className="card bg-primary-900">
+                    <div className="mb-4 flex items-center justify-between">
+                      <h3 className="font-semibold text-white text-xl">Take a Photo</h3>
+                      <button
+                        onClick={stopCamera}
+                        className="text-primary-300 hover:text-white transition-colors p-2"
+                      >
+                        <X size={24} />
+                      </button>
+                    </div>
+                    
+                    <div className="relative bg-black rounded-lg overflow-hidden mb-4">
+                      <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="w-full h-auto max-h-[70vh] object-contain"
+                      />
+                      {/* Canvas for capturing (hidden) */}
+                      <canvas ref={canvasRef} className="hidden" />
+                      
+                      {/* Capture overlay guides */}
+                      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                        <div className="border-2 border-white/50 rounded-lg w-3/4 h-3/4 max-w-md max-h-md" />
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-center gap-4">
+                      <button
+                        onClick={stopCamera}
+                        className="btn-secondary px-6 py-3"
+                      >
+                        <X className="w-5 h-5 mr-2" />
+                        Cancel
+                      </button>
+                      <button
+                        onClick={capturePhoto}
+                        className="btn-primary px-8 py-3 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-lg"
+                      >
+                        <Camera className="w-5 h-5 mr-2" />
+                        Capture Photo
+                      </button>
+                    </div>
+                    
+                    <p className="text-center text-primary-300 text-sm mt-4">
+                      Position your face in the frame and tap Capture Photo
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Sample Results Preview */}
             <div className="mt-8">
