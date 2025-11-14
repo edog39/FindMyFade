@@ -629,16 +629,31 @@ export default function AIStylePage() {
       
       setCameraStream(stream)
       setShowCamera(true)
-      
-      // Attach stream to video element
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-      }
     } catch (error: any) {
       console.error('Error accessing camera:', error)
       alert(`Error accessing camera: ${error.message || 'Camera access denied. Please allow camera access and try again.'}`)
     }
   }
+
+  // Effect to attach stream to video element when camera is shown
+  useEffect(() => {
+    if (showCamera && cameraStream && videoRef.current) {
+      const video = videoRef.current
+      video.srcObject = cameraStream
+      
+      // Ensure video plays
+      video.play().catch((error) => {
+        console.error('Error playing video:', error)
+      })
+    }
+    
+    return () => {
+      // Cleanup when camera view is hidden
+      if (videoRef.current && !showCamera) {
+        videoRef.current.srcObject = null
+      }
+    }
+  }, [showCamera, cameraStream])
 
   const stopCamera = () => {
     if (cameraStream) {
@@ -670,8 +685,15 @@ export default function AIStylePage() {
       canvas.width = video.videoWidth
       canvas.height = video.videoHeight
 
-      // Draw video frame to canvas
+      // Flip the image back to normal (since video preview is mirrored)
+      ctx.translate(canvas.width, 0)
+      ctx.scale(-1, 1)
+      
+      // Draw video frame to canvas (will be flipped back to normal)
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+      
+      // Reset transform
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
 
       // Convert canvas to blob
       canvas.toBlob(async (blob) => {
@@ -1512,13 +1534,23 @@ export default function AIStylePage() {
                       </button>
                     </div>
                     
-                    <div className="relative bg-black rounded-lg overflow-hidden mb-4">
+                    <div className="relative bg-black rounded-lg overflow-hidden mb-4" style={{ minHeight: '400px' }}>
                       <video
                         ref={videoRef}
                         autoPlay
                         playsInline
                         muted
-                        className="w-full h-auto max-h-[70vh] object-contain"
+                        className="w-full h-auto max-h-[70vh] object-cover"
+                        style={{ 
+                          transform: 'scaleX(-1)', // Mirror the video for better UX
+                          width: '100%',
+                          height: 'auto'
+                        }}
+                        onLoadedMetadata={() => {
+                          if (videoRef.current) {
+                            videoRef.current.play().catch(console.error)
+                          }
+                        }}
                       />
                       {/* Canvas for capturing (hidden) */}
                       <canvas ref={canvasRef} className="hidden" />
