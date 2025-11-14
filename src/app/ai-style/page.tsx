@@ -1444,53 +1444,59 @@ export default function AIStylePage() {
     <div className="min-h-screen bg-gradient-to-br from-primary-950 via-primary-900 to-primary-800">
       {/* Image Quality Popup - Top level so it can show from any step */}
       {showImageQualityPopup && (
-        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-          <div className="max-w-md w-full">
-            <div className="card bg-primary-900">
-              <div className="text-center py-6">
-                <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Camera className="w-8 h-8 text-red-400" />
-                </div>
-                
-                <h3 className="font-semibold text-white text-xl mb-3">
-                  Image Quality Issue
-                </h3>
-                
-                <p className="text-primary-300 mb-6">
-                  Image wasn't high enough quality. The AI couldn't analyze your face clearly. Please try again with a clearer photo.
-                </p>
-                
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <button
-                    onClick={() => {
-                      setShowImageQualityPopup(false)
-                      setStep('upload')
-                      startCamera()
-                    }}
-                    className="btn-primary px-6 py-3 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700"
-                  >
-                    <Camera className="w-5 h-5 mr-2" />
-                    Take Another Photo
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      setShowImageQualityPopup(false)
-                      setStep('upload')
-                    }}
-                    className="btn-secondary px-6 py-3"
-                  >
-                    Upload Different Photo
-                  </button>
-                </div>
-                
-                <button
-                  onClick={() => setShowImageQualityPopup(false)}
-                  className="mt-4 text-primary-300 hover:text-white text-sm transition-colors"
-                >
-                  Cancel
-                </button>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="card max-w-md w-full animate-fade-in">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-display font-bold text-2xl text-white">Image Quality Issue</h3>
+              <button 
+                onClick={() => setShowImageQualityPopup(false)}
+                className="text-primary-300 hover:text-white transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Camera className="w-8 h-8 text-red-400" />
               </div>
+              
+              <p className="text-primary-300 mb-6">
+                Image wasn't high enough quality. The AI couldn't analyze your face clearly. Please try again with a clearer photo.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  setShowImageQualityPopup(false)
+                  setStep('upload')
+                  startCamera()
+                }}
+                className="w-full btn-primary py-3 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 flex items-center justify-center"
+              >
+                <Camera className="w-5 h-5 mr-2" />
+                Take Another Photo
+              </button>
+              
+              <button
+                onClick={() => {
+                  setShowImageQualityPopup(false)
+                  setStep('upload')
+                }}
+                className="w-full btn-secondary py-3"
+              >
+                Upload Different Photo
+              </button>
+            </div>
+
+            <div className="mt-6">
+              <button 
+                onClick={() => setShowImageQualityPopup(false)}
+                className="w-full btn-secondary py-3"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
