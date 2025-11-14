@@ -563,10 +563,12 @@ export default function AIStylePage() {
     if (file.type.startsWith('video/')) {
       const reader = new FileReader()
       reader.onload = (e) => {
-        setUploadedVideo(e.target?.result as string)
+        const videoDataUrl = e.target?.result as string
+        setUploadedVideo(videoDataUrl)
         setMediaType('video')
         setStep('analyzing')
-        startAnalysis()
+        // Pass video directly to avoid race condition
+        startAnalysis(videoDataUrl)
       }
       reader.readAsDataURL(file)
       return
@@ -579,16 +581,19 @@ export default function AIStylePage() {
       setUploadedImage(compressedImage)
       setMediaType('image')
       setStep('analyzing')
-      startAnalysis()
+      // Pass compressed image directly to avoid race condition with state update
+      startAnalysis(compressedImage)
     } catch (error) {
       console.error('❌ Error compressing image:', error)
       // Fallback to original if compression fails
       const reader = new FileReader()
       reader.onload = (e) => {
-        setUploadedImage(e.target?.result as string)
+        const imageDataUrl = e.target?.result as string
+        setUploadedImage(imageDataUrl)
         setMediaType('image')
         setStep('analyzing')
-        startAnalysis()
+        // Pass image directly to avoid race condition
+        startAnalysis(imageDataUrl)
       }
       reader.readAsDataURL(file)
     }
@@ -597,10 +602,12 @@ export default function AIStylePage() {
   const handleVideoUpload = (file: File) => {
     const reader = new FileReader()
     reader.onload = (e) => {
-      setUploadedVideo(e.target?.result as string)
+      const videoDataUrl = e.target?.result as string
+      setUploadedVideo(videoDataUrl)
       setMediaType('video')
       setStep('analyzing')
-      startAnalysis()
+      // Pass video directly to avoid race condition with state update
+      startAnalysis(videoDataUrl)
     }
     reader.readAsDataURL(file)
   }
@@ -748,7 +755,7 @@ export default function AIStylePage() {
     }
   }
 
-  const startAnalysis = async () => {
+  const startAnalysis = async (imageOverride?: string | null) => {
     // Step 1: Analyze facial features with REAL AI
     setAnalysisProgress(0)
     const analysisInterval = setInterval(() => {
@@ -762,14 +769,24 @@ export default function AIStylePage() {
     }, 200)
 
     try {
-      // Validate that we have an image to analyze
-      const imageToAnalyze = uploadedImage || uploadedVideo
+      // Use provided image or fall back to state (for backwards compatibility)
+      // The imageOverride parameter prevents race conditions when state hasn't updated yet
+      const imageToAnalyze = imageOverride !== undefined ? imageOverride : (uploadedImage || uploadedVideo)
+      
       if (!imageToAnalyze) {
         throw new Error('Please upload an image before starting analysis.')
       }
       
-      // Validate that it's a base64 data URL
-      if (typeof imageToAnalyze !== 'string' || !imageToAnalyze.startsWith('data:image/')) {
+      // Validate that it's a base64 data URL for images (videos are not supported by OpenAI Vision)
+      if (typeof imageToAnalyze !== 'string') {
+        throw new Error('Invalid image format. Please upload a valid image file.')
+      }
+      
+      if (imageToAnalyze.startsWith('data:video/')) {
+        throw new Error('Videos are not supported for face analysis. Please upload an image instead.')
+      }
+      
+      if (!imageToAnalyze.startsWith('data:image/')) {
         throw new Error('Invalid image format. Please upload a valid image file.')
       }
       
