@@ -411,8 +411,10 @@ export default function Home() {
                 <MapPin size={24} className="text-accent-400 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300 relative z-10" />
                 <span className="font-bold text-lg text-white relative z-10">Near Me</span>
               </Link>
-              <Link href="/ai-style" className="relative group overflow-hidden flex items-center space-x-3 bg-gradient-to-br from-primary-800/80 to-primary-700/60 backdrop-blur-xl border-2 border-primary-600 hover:border-accent-500/70 px-8 py-4 rounded-2xl transition-all duration-300 shadow-xl shadow-black/30 hover:shadow-2xl hover:shadow-accent-500/20 hover:scale-105 active:scale-95">
-                <div className="absolute -top-2 -right-2 bg-gradient-to-r from-accent-400 via-yellow-400 to-accent-500 text-black text-xs px-3 py-1 rounded-full font-black shadow-xl animate-bounce z-30 whitespace-nowrap"></div>
+              <Link href="/ai-style" className="relative group overflow-visible flex items-center space-x-3 bg-gradient-to-br from-primary-800/80 to-primary-700/60 backdrop-blur-xl border-2 border-primary-600 hover:border-accent-500/70 px-8 py-4 rounded-2xl transition-all duration-300 shadow-xl shadow-black/30 hover:shadow-2xl hover:shadow-accent-500/20 hover:scale-105 active:scale-95">
+                <div className="absolute -top-2 -right-2 bg-gradient-to-r from-accent-400 via-yellow-400 to-accent-500 text-black text-xs px-3 py-1 rounded-full font-black shadow-xl animate-bounce z-30 whitespace-nowrap">
+                  Try out!!
+                </div>
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-500/50 via-accent-500/50 to-pink-500/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
                 <Camera size={24} className="text-accent-400 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300 relative z-10" />
                 <span className="font-bold text-lg text-white relative z-10">AI Style Match</span>
