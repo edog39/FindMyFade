@@ -1470,10 +1470,10 @@ export default function AIStylePage() {
 
             <div className="space-y-3">
               <button
-                onClick={() => {
+                onClick={async () => {
                   setShowImageQualityPopup(false)
-                  setStep('upload')
-                  startCamera()
+                  // Open camera immediately
+                  await startCamera()
                 }}
                 className="w-full btn-primary py-3 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 flex items-center justify-center"
               >
@@ -1818,7 +1818,7 @@ export default function AIStylePage() {
 
             {/* Camera View */}
             {showCamera && (
-              <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+              <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
                 <div className="max-w-2xl w-full">
                   <div className="card bg-primary-900">
                     <div className="mb-4 flex items-center justify-between">
