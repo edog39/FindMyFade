@@ -415,7 +415,7 @@ export default function Home() {
                 <div className="absolute -top-2 -right-2 bg-gradient-to-r from-accent-400 via-yellow-400 to-accent-500 text-black text-xs px-3 py-1 rounded-full font-black shadow-xl animate-bounce z-30 whitespace-nowrap">
                   Try out!!
                 </div>
-                <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-r from-purple-500/50 via-accent-500/50 to-pink-500/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl z-0"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/50 via-accent-500/50 to-pink-500/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
                 <Camera size={24} className="text-accent-400 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300 relative z-10" />
                 <span className="font-bold text-lg text-white relative z-10">AI Style Match</span>
               </Link>
