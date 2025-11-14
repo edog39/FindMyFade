@@ -472,20 +472,126 @@ export default function AIStylePage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
 
-  const handleImageUpload = (file: File) => {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      if (file.type.startsWith('video/')) {
+  // Helper function to compress and resize images
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      
+      reader.onload = (e) => {
+        const img = new Image()
+        img.onload = () => {
+          // Calculate new dimensions (max 2048px on the longest side, maintain aspect ratio)
+          const MAX_DIMENSION = 2048
+          let width = img.width
+          let height = img.height
+          
+          if (width > height && width > MAX_DIMENSION) {
+            height = (height * MAX_DIMENSION) / width
+            width = MAX_DIMENSION
+          } else if (height > MAX_DIMENSION) {
+            width = (width * MAX_DIMENSION) / height
+            height = MAX_DIMENSION
+          }
+          
+          // Create canvas and resize
+          const canvas = document.createElement('canvas')
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          
+          if (!ctx) {
+            reject(new Error('Failed to get canvas context'))
+            return
+          }
+          
+          // Draw resized image
+          ctx.drawImage(img, 0, 0, width, height)
+          
+          // Convert to base64 with compression (JPEG quality 0.85)
+          // Try to keep under 20MB limit - if still too large, reduce quality
+          let quality = 0.85
+          let dataUrl = canvas.toDataURL('image/jpeg', quality)
+          
+          // Check size and reduce quality if needed (20MB = ~26.7MB base64 encoded)
+          const MAX_BASE64_SIZE = 26 * 1024 * 1024 // 26MB base64 size
+          while (dataUrl.length > MAX_BASE64_SIZE && quality > 0.3) {
+            quality -= 0.1
+            dataUrl = canvas.toDataURL('image/jpeg', quality)
+          }
+          
+          // If still too large, resize further
+          if (dataUrl.length > MAX_BASE64_SIZE) {
+            const smallerMax = Math.min(MAX_DIMENSION, Math.floor(MAX_DIMENSION * 0.8))
+            let newWidth = width
+            let newHeight = height
+            
+            if (width > height && width > smallerMax) {
+              newHeight = (height * smallerMax) / width
+              newWidth = smallerMax
+            } else if (height > smallerMax) {
+              newWidth = (width * smallerMax) / height
+              newHeight = smallerMax
+            }
+            
+            canvas.width = newWidth
+            canvas.height = newHeight
+            ctx.drawImage(img, 0, 0, newWidth, newHeight)
+            dataUrl = canvas.toDataURL('image/jpeg', 0.7)
+          }
+          
+          console.log(`📸 Image compressed: ${(file.size / 1024 / 1024).toFixed(2)}MB → ${(dataUrl.length / 1024 / 1024).toFixed(2)}MB base64`)
+          resolve(dataUrl)
+        }
+        
+        img.onerror = () => {
+          reject(new Error('Failed to load image'))
+        }
+        
+        img.src = e.target?.result as string
+      }
+      
+      reader.onerror = () => {
+        reject(new Error('Failed to read file'))
+      }
+      
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const handleImageUpload = async (file: File) => {
+    // Handle videos separately (no compression for videos)
+    if (file.type.startsWith('video/')) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
         setUploadedVideo(e.target?.result as string)
         setMediaType('video')
-      } else {
-        setUploadedImage(e.target?.result as string)
-        setMediaType('image')
+        setStep('analyzing')
+        startAnalysis()
       }
+      reader.readAsDataURL(file)
+      return
+    }
+    
+    // Compress images before uploading
+    try {
+      console.log(`📸 Processing image: ${(file.size / 1024 / 1024).toFixed(2)}MB`)
+      const compressedImage = await compressImage(file)
+      setUploadedImage(compressedImage)
+      setMediaType('image')
       setStep('analyzing')
       startAnalysis()
+    } catch (error) {
+      console.error('❌ Error compressing image:', error)
+      // Fallback to original if compression fails
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setUploadedImage(e.target?.result as string)
+        setMediaType('image')
+        setStep('analyzing')
+        startAnalysis()
+      }
+      reader.readAsDataURL(file)
     }
-    reader.readAsDataURL(file)
   }
 
   const handleVideoUpload = (file: File) => {
@@ -656,19 +762,33 @@ export default function AIStylePage() {
     }, 200)
 
     try {
+      // Validate that we have an image to analyze
+      const imageToAnalyze = uploadedImage || uploadedVideo
+      if (!imageToAnalyze) {
+        throw new Error('Please upload an image before starting analysis.')
+      }
+      
+      // Validate that it's a base64 data URL
+      if (typeof imageToAnalyze !== 'string' || !imageToAnalyze.startsWith('data:image/')) {
+        throw new Error('Invalid image format. Please upload a valid image file.')
+      }
+      
       console.log('🤖 Calling OpenAI Vision API for face analysis...')
       
       // Call the real AI API
       const response = await fetch('/api/analyze-face', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: uploadedImage || uploadedVideo })
+        body: JSON.stringify({ image: imageToAnalyze })
       })
       
       // Check if request was successful
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.message || 'Face analysis failed')
+        const errorMessage = errorData.details 
+          ? `${errorData.message || 'Face analysis failed'}: ${errorData.details}`
+          : (errorData.message || 'Face analysis failed')
+        throw new Error(errorMessage)
       }
       
       const { analysis, error } = await response.json()

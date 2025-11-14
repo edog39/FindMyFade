@@ -10,6 +10,51 @@ export async function POST(req: Request) {
     console.log('📸 Image data received, length:', image?.length || 0)
     console.log('📸 Image format:', image?.substring(0, 50) + '...')
     
+    // Validate image is provided and not null/undefined
+    if (!image || typeof image !== 'string') {
+      console.error('❌ Invalid or missing image data')
+      return Response.json(
+        { 
+          error: 'Bad request',
+          message: 'Invalid image format or size. Please try a different image.',
+          details: 'Image data is required and must be a valid base64-encoded data URL'
+        },
+        { status: 400 }
+      )
+    }
+    
+    // Validate image is a base64 data URL
+    if (!image.startsWith('data:image/')) {
+      console.error('❌ Image is not a valid base64 data URL')
+      return Response.json(
+        { 
+          error: 'Bad request',
+          message: 'Invalid image format or size. Please try a different image.',
+          details: 'Image must be a base64-encoded data URL starting with "data:image/"'
+        },
+        { status: 400 }
+      )
+    }
+    
+    // Check image size (OpenAI API limit is 20MB for files, ~26.7MB for base64 encoded)
+    // Base64 encoding increases size by ~33%, so we check the base64 size
+    const MAX_BASE64_SIZE = 26 * 1024 * 1024 // 26MB base64 size (safe margin)
+    const imageSizeMB = image.length / 1024 / 1024
+    
+    if (image.length > MAX_BASE64_SIZE) {
+      console.error(`❌ Image too large: ${imageSizeMB.toFixed(2)}MB (max ${(MAX_BASE64_SIZE / 1024 / 1024).toFixed(2)}MB)`)
+      return Response.json(
+        { 
+          error: 'Bad request',
+          message: 'Invalid image format or size. Please try a different image.',
+          details: `Image is too large (${imageSizeMB.toFixed(2)}MB). Maximum size is ${(MAX_BASE64_SIZE / 1024 / 1024).toFixed(2)}MB. The image should be automatically compressed - please try again.`
+        },
+        { status: 400 }
+      )
+    }
+    
+    console.log(`✅ Image size validated: ${imageSizeMB.toFixed(2)}MB`)
+    
     // Check if OpenAI API key exists
     if (!process.env.OPENAI_API_KEY) {
       console.error('❌ OPENAI_API_KEY not found')
