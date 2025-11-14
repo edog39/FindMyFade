@@ -474,6 +474,8 @@ export default function AIStylePage() {
   const [showCamera, setShowCamera] = useState(false)
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null)
   const [isCapturing, setIsCapturing] = useState(false)
+  const [retryAttempt, setRetryAttempt] = useState(0)
+  const [maxRetries] = useState(3) // Maximum number of retry attempts
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -1022,88 +1024,193 @@ export default function AIStylePage() {
       
       console.log('🤖 Calling OpenAI Vision API for face analysis...')
       
-      // Call the real AI API with timeout
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 60000) // 60 second timeout
-      
-      let response: Response
-      try {
-        response = await fetch('/api/analyze-face', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: imageToAnalyze }),
-          signal: controller.signal
-        })
-        clearTimeout(timeoutId)
-      } catch (fetchError: any) {
-        clearTimeout(timeoutId)
-        if (fetchError.name === 'AbortError') {
-          throw new Error('Request timed out. The image may be too large or the server is taking too long. Please try again with a smaller image.')
+      // Helper function to check if error is retryable
+      const isRetryableError = (error: any, status?: number): boolean => {
+        // Don't retry on client errors (4xx) except 408 (timeout) and 429 (rate limit)
+        if (status && status >= 400 && status < 500) {
+          return status === 408 || status === 429 // Retry on timeout and rate limit
         }
-        throw new Error(`Network error: ${fetchError.message || 'Failed to connect to server. Please check your internet connection and try again.'}`)
+        // Retry on server errors (5xx)
+        if (status && status >= 500) {
+          return true
+        }
+        // Retry on network errors and timeouts
+        if (error?.name === 'AbortError' || error?.message?.includes('timeout') || error?.message?.includes('Network error')) {
+          return true
+        }
+        // Retry on empty response (might be transient)
+        if (error?.message?.includes('empty response')) {
+          return true
+        }
+        return false
       }
-      
-      // Check if request was successful
-      if (!response.ok) {
-        let errorData: any
+
+      // Retry function with exponential backoff
+      const callAPIWithRetry = async (attempt: number = 0): Promise<any> => {
         try {
-          const errorText = await response.text()
-          console.error('❌ Error response text:', errorText)
+          setRetryAttempt(attempt)
           
-          if (!errorText || errorText.trim().length === 0) {
-            throw new Error(`Server error (${response.status}): ${response.statusText || 'Empty response from server'}`)
+          // Call the real AI API with timeout
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 60000) // 60 second timeout
+          
+          let response: Response
+          try {
+            response = await fetch('/api/analyze-face', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ image: imageToAnalyze }),
+              signal: controller.signal
+            })
+            clearTimeout(timeoutId)
+          } catch (fetchError: any) {
+            clearTimeout(timeoutId)
+            if (fetchError.name === 'AbortError') {
+              const error = new Error('Request timed out. The image may be too large or the server is taking too long.')
+              if (isRetryableError(error) && attempt < maxRetries) {
+                const delay = Math.min(1000 * Math.pow(2, attempt), 10000) // Exponential backoff, max 10s
+                console.log(`⏳ Retrying after ${delay}ms (attempt ${attempt + 1}/${maxRetries})...`)
+                await new Promise(resolve => setTimeout(resolve, delay))
+                return callAPIWithRetry(attempt + 1)
+              }
+              throw error
+            }
+            const error = new Error(`Network error: ${fetchError.message || 'Failed to connect to server.'}`)
+            if (isRetryableError(error) && attempt < maxRetries) {
+              const delay = Math.min(1000 * Math.pow(2, attempt), 10000)
+              console.log(`⏳ Retrying after ${delay}ms (attempt ${attempt + 1}/${maxRetries})...`)
+              await new Promise(resolve => setTimeout(resolve, delay))
+              return callAPIWithRetry(attempt + 1)
+            }
+            throw error
           }
           
-          errorData = JSON.parse(errorText)
-        } catch (parseError: any) {
-          console.error('❌ Failed to parse error response:', parseError)
-          // If we can't parse the error response, use status text
-          throw new Error(`Server error (${response.status}): ${response.statusText || 'Failed to analyze face. Server returned empty or invalid response.'}`)
+          // Check if request was successful
+          if (!response.ok) {
+            let errorData: any
+            try {
+              const errorText = await response.text()
+              console.error('❌ Error response text:', errorText)
+              
+              if (!errorText || errorText.trim().length === 0) {
+                const error = new Error(`Server error (${response.status}): Empty response from server`)
+                if (isRetryableError(error, response.status) && attempt < maxRetries) {
+                  const delay = Math.min(1000 * Math.pow(2, attempt), 10000)
+                  console.log(`⏳ Retrying after ${delay}ms (attempt ${attempt + 1}/${maxRetries})...`)
+                  await new Promise(resolve => setTimeout(resolve, delay))
+                  return callAPIWithRetry(attempt + 1)
+                }
+                throw error
+              }
+              
+              errorData = JSON.parse(errorText)
+            } catch (parseError: any) {
+              console.error('❌ Failed to parse error response:', parseError)
+              const error = new Error(`Server error (${response.status}): ${response.statusText || 'Invalid response'}`)
+              if (isRetryableError(error, response.status) && attempt < maxRetries) {
+                const delay = Math.min(1000 * Math.pow(2, attempt), 10000)
+                console.log(`⏳ Retrying after ${delay}ms (attempt ${attempt + 1}/${maxRetries})...`)
+                await new Promise(resolve => setTimeout(resolve, delay))
+                return callAPIWithRetry(attempt + 1)
+              }
+              throw error
+            }
+            
+            const errorMessage = errorData.details 
+              ? `${errorData.message || 'Face analysis failed'}: ${errorData.details}`
+              : (errorData.message || 'Face analysis failed')
+            const error = new Error(errorMessage)
+            
+            if (isRetryableError(error, response.status) && attempt < maxRetries) {
+              const delay = Math.min(1000 * Math.pow(2, attempt), 10000)
+              console.log(`⏳ Retrying after ${delay}ms (attempt ${attempt + 1}/${maxRetries})...`)
+              await new Promise(resolve => setTimeout(resolve, delay))
+              return callAPIWithRetry(attempt + 1)
+            }
+            throw error
+          }
+          
+          // Parse successful response
+          let responseData: any
+          try {
+            const responseText = await response.text()
+            console.log('📦 Raw response text length:', responseText.length)
+            console.log('📦 Raw response text preview:', responseText.substring(0, 200))
+            
+            if (!responseText || responseText.trim().length === 0) {
+              const error = new Error('Server returned empty response.')
+              if (isRetryableError(error) && attempt < maxRetries) {
+                const delay = Math.min(1000 * Math.pow(2, attempt), 10000)
+                console.log(`⏳ Retrying after ${delay}ms (attempt ${attempt + 1}/${maxRetries})...`)
+                await new Promise(resolve => setTimeout(resolve, delay))
+                return callAPIWithRetry(attempt + 1)
+              }
+              throw error
+            }
+            
+            responseData = JSON.parse(responseText)
+            console.log('✅ Parsed response data:', responseData)
+          } catch (parseError: any) {
+            console.error('❌ Failed to parse response:', parseError)
+            const error = new Error(`Failed to parse server response: ${parseError.message || 'Invalid JSON'}`)
+            if (isRetryableError(error) && attempt < maxRetries) {
+              const delay = Math.min(1000 * Math.pow(2, attempt), 10000)
+              console.log(`⏳ Retrying after ${delay}ms (attempt ${attempt + 1}/${maxRetries})...`)
+              await new Promise(resolve => setTimeout(resolve, delay))
+              return callAPIWithRetry(attempt + 1)
+            }
+            throw error
+          }
+          
+          const { analysis, error } = responseData || {}
+          
+          // Check for error in response
+          if (error) {
+            console.error('❌ Error in response:', error)
+            const errorObj = new Error(typeof error === 'string' ? error : (error.message || 'Unknown error'))
+            if (isRetryableError(errorObj) && attempt < maxRetries) {
+              const delay = Math.min(1000 * Math.pow(2, attempt), 10000)
+              console.log(`⏳ Retrying after ${delay}ms (attempt ${attempt + 1}/${maxRetries})...`)
+              await new Promise(resolve => setTimeout(resolve, delay))
+              return callAPIWithRetry(attempt + 1)
+            }
+            throw errorObj
+          }
+          
+          // Validate analysis exists
+          if (!analysis) {
+            console.error('❌ No analysis in response. Response data:', responseData)
+            const error = new Error('No analysis data received from server.')
+            if (isRetryableError(error) && attempt < maxRetries) {
+              const delay = Math.min(1000 * Math.pow(2, attempt), 10000)
+              console.log(`⏳ Retrying after ${delay}ms (attempt ${attempt + 1}/${maxRetries})...`)
+              await new Promise(resolve => setTimeout(resolve, delay))
+              return callAPIWithRetry(attempt + 1)
+            }
+            throw error
+          }
+          
+          console.log('✅ Analysis received:', analysis)
+          setRetryAttempt(0) // Reset retry counter on success
+          return analysis
+        } catch (error: any) {
+          if (isRetryableError(error) && attempt < maxRetries) {
+            const delay = Math.min(1000 * Math.pow(2, attempt), 10000)
+            console.log(`⏳ Retrying after ${delay}ms (attempt ${attempt + 1}/${maxRetries})...`)
+            await new Promise(resolve => setTimeout(resolve, delay))
+            return callAPIWithRetry(attempt + 1)
+          }
+          throw error
         }
-        
-        const errorMessage = errorData.details 
-          ? `${errorData.message || 'Face analysis failed'}: ${errorData.details}`
-          : (errorData.message || 'Face analysis failed')
-        throw new Error(errorMessage)
       }
-      
-      // Parse successful response
-      let responseData: any
-      try {
-        const responseText = await response.text()
-        console.log('📦 Raw response text length:', responseText.length)
-        console.log('📦 Raw response text preview:', responseText.substring(0, 200))
-        
-        if (!responseText || responseText.trim().length === 0) {
-          throw new Error('Server returned empty response. Please try again.')
-        }
-        
-        responseData = JSON.parse(responseText)
-        console.log('✅ Parsed response data:', responseData)
-      } catch (parseError: any) {
-        console.error('❌ Failed to parse response:', parseError)
-        throw new Error(`Failed to parse server response: ${parseError.message || 'Invalid JSON'}. Please try again.`)
-      }
-      
-      const { analysis, error } = responseData || {}
-      
-      // Check for error in response
-      if (error) {
-        console.error('❌ Error in response:', error)
-        throw new Error(typeof error === 'string' ? error : (error.message || 'Unknown error'))
-      }
-      
-      // Validate analysis exists
-      if (!analysis) {
-        console.error('❌ No analysis in response. Response data:', responseData)
-        throw new Error('No analysis data received from server. The server may have returned an empty response. Please try again.')
-      }
-      
-      console.log('✅ Analysis received:', analysis)
+
+      // Call API with retry logic
+      const analysis = await callAPIWithRetry()
       
       // Clear progress and set to complete
       clearInterval(analysisInterval)
       setAnalysisProgress(100)
+      setRetryAttempt(0) // Reset on success
       
       console.log('✅ AI Analysis complete:', analysis)
       console.log('🎉 Using OpenAI Vision API!')
@@ -1119,10 +1226,13 @@ export default function AIStylePage() {
       console.error('❌ Error during AI analysis:', error)
       clearInterval(analysisInterval)
       setAnalysisProgress(0)
+      setRetryAttempt(0) // Reset retry counter
       setStep('upload')
       
-      // Show error to user
-      alert(`AI Analysis Error: ${error instanceof Error ? error.message : 'Failed to analyze face. Please ensure OpenAI API key is configured and try again.'}`)
+      // Show error to user with retry info if applicable
+      const errorMessage = error instanceof Error ? error.message : 'Failed to analyze face. Please ensure OpenAI API key is configured and try again.'
+      const retryInfo = retryAttempt > 0 ? ` (Tried ${retryAttempt + 1} times)` : ''
+      alert(`AI Analysis Error: ${errorMessage}${retryInfo}`)
       return
     }
     
@@ -1754,9 +1864,17 @@ export default function AIStylePage() {
                 <h2 className="font-display font-bold text-2xl text-white mb-4">
                   Analyzing Your Features
                 </h2>
-                <p className="text-primary-300 mb-8">
+                <p className="text-primary-300 mb-4">
                   Our AI is studying your facial structure, hair type, and features to find your perfect match...
                 </p>
+                {retryAttempt > 0 && (
+                  <div className="mb-4 p-3 bg-accent-500/20 border border-accent-500/50 rounded-lg">
+                    <p className="text-accent-300 text-sm flex items-center justify-center">
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Retrying... (Attempt {retryAttempt + 1}/{maxRetries + 1})
+                    </p>
+                  </div>
+                )}
 
                 {/* Progress Bar */}
                 <div className="w-full bg-primary-700 rounded-full h-2 mb-4">
