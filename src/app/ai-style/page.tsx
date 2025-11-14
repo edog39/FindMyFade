@@ -477,6 +477,7 @@ export default function AIStylePage() {
   const [retryAttempt, setRetryAttempt] = useState(0)
   const [maxRetries] = useState(3) // Maximum number of retry attempts
   const [showImageQualityPopup, setShowImageQualityPopup] = useState(false)
+  const [errorPopupMessage, setErrorPopupMessage] = useState<string>('')
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -1231,8 +1232,8 @@ export default function AIStylePage() {
       setRetryAttempt(0) // Reset retry counter
       setStep('upload')
       
-      // Check if error is related to image quality (after all retries)
-      const errorMessage = error instanceof Error ? error.message : 'Failed to analyze face. Please ensure OpenAI API key is configured and try again.'
+      // Get error message
+      const errorMessage = error instanceof Error ? error.message : 'Failed to analyze face. Please try again with a clearer image.'
       const errorLower = errorMessage.toLowerCase()
       
       // Detect image quality errors - comprehensive list
@@ -1244,23 +1245,24 @@ export default function AIStylePage() {
                                   errorLower.includes('image shows') ||
                                   errorLower.includes('clear face') ||
                                   errorLower.includes('contains no faces') ||
-                                  errorLower.includes('unclear or contains')
+                                  errorLower.includes('unclear or contains') ||
+                                  errorLower.includes('missing required fields') ||
+                                  errorLower.includes('invalid response')
       
-      // Show image quality popup if it's a quality issue after all retries (maxRetries-1 because attempts are 0-indexed)
-      const hasExhaustedRetries = finalRetryAttempt >= maxRetries - 1
+      // Always show popup instead of browser alert - replace all alerts
+      // Clear uploaded images so user can start fresh
+      setUploadedImage(null)
+      setUploadedVideo(null)
       
-      // Always show popup for image quality errors after retries, or if it's clearly an image quality issue
-      if (isImageQualityError && (hasExhaustedRetries || finalRetryAttempt > 0)) {
-        // Clear uploaded images so user can start fresh
-        setUploadedImage(null)
-        setUploadedVideo(null)
-        setShowImageQualityPopup(true)
-        return // Don't show alert, popup handles it
+      // Set appropriate error message
+      if (isImageQualityError) {
+        setErrorPopupMessage('Image wasn\'t high enough quality. The AI couldn\'t analyze your face clearly. Please try again with a clearer photo.')
       } else {
-        // Show regular error for other issues (network, API key, etc.)
-        const retryInfo = finalRetryAttempt > 0 ? ` (Tried ${finalRetryAttempt + 1} times)` : ''
-        alert(`AI Analysis Error: ${errorMessage}${retryInfo}`)
+        // For other errors, show a user-friendly message
+        setErrorPopupMessage('Analysis failed. Please try again with a clearer photo or check your connection.')
       }
+      
+      setShowImageQualityPopup(true)
       return
     }
     
@@ -1447,7 +1449,7 @@ export default function AIStylePage() {
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="card max-w-md w-full animate-fade-in">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="font-display font-bold text-2xl text-white">Image Quality Issue</h3>
+              <h3 className="font-display font-bold text-2xl text-white">Analysis Failed</h3>
               <button 
                 onClick={() => setShowImageQualityPopup(false)}
                 className="text-primary-300 hover:text-white transition-colors"
@@ -1462,7 +1464,7 @@ export default function AIStylePage() {
               </div>
               
               <p className="text-primary-300 mb-6">
-                Image wasn't high enough quality. The AI couldn't analyze your face clearly. Please try again with a clearer photo.
+                Can't analyze face. Please try again.
               </p>
             </div>
 
@@ -1477,25 +1479,6 @@ export default function AIStylePage() {
               >
                 <Camera className="w-5 h-5 mr-2" />
                 Take Another Photo
-              </button>
-              
-              <button
-                onClick={() => {
-                  setShowImageQualityPopup(false)
-                  setStep('upload')
-                }}
-                className="w-full btn-secondary py-3"
-              >
-                Upload Different Photo
-              </button>
-            </div>
-
-            <div className="mt-6">
-              <button 
-                onClick={() => setShowImageQualityPopup(false)}
-                className="w-full btn-secondary py-3"
-              >
-                Cancel
               </button>
             </div>
           </div>
