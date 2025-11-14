@@ -473,6 +473,7 @@ export default function AIStylePage() {
   const videoInputRef = useRef<HTMLInputElement>(null)
   const [showCamera, setShowCamera] = useState(false)
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null)
+  const [isCapturing, setIsCapturing] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -603,17 +604,69 @@ export default function AIStylePage() {
     }
   }
 
-  const handleVideoUpload = (file: File) => {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const videoDataUrl = e.target?.result as string
-      setUploadedVideo(videoDataUrl)
-      setMediaType('video')
-      setStep('analyzing')
-      // Pass video directly to avoid race condition with state update
-      startAnalysis(videoDataUrl)
+  const extractFrameFromVideo = (videoFile: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video')
+      video.preload = 'metadata'
+      
+      video.onloadedmetadata = () => {
+        // Seek to a good frame (middle of video or first frame)
+        video.currentTime = Math.min(0.1, video.duration / 2)
+      }
+      
+      video.onseeked = () => {
+        const canvas = document.createElement('canvas')
+        canvas.width = video.videoWidth
+        canvas.height = video.videoHeight
+        const ctx = canvas.getContext('2d')
+        
+        if (!ctx) {
+          reject(new Error('Failed to get canvas context'))
+          return
+        }
+        
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+        
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            reject(new Error('Failed to extract frame from video'))
+            return
+          }
+          
+          const frameFile = new File([blob], 'video-frame.jpg', { type: 'image/jpeg' })
+          resolve(frameFile)
+        }, 'image/jpeg', 0.95)
+      }
+      
+      video.onerror = (error) => {
+        reject(new Error('Failed to load video'))
+      }
+      
+      video.src = URL.createObjectURL(videoFile)
+    })
+  }
+
+  const handleVideoUpload = async (file: File) => {
+    try {
+      // Extract a frame from the video for analysis
+      console.log('📹 Extracting frame from video...')
+      const frameFile = await extractFrameFromVideo(file)
+      
+      // Store video for display but use extracted frame for analysis
+      const reader = new FileReader()
+      reader.onload = async (e) => {
+        const videoDataUrl = e.target?.result as string
+        setUploadedVideo(videoDataUrl)
+        setMediaType('video')
+        setStep('analyzing')
+        // Use extracted frame for analysis (images only)
+        await handleImageUpload(frameFile)
+      }
+      reader.readAsDataURL(file)
+    } catch (error: any) {
+      console.error('❌ Error extracting frame from video:', error)
+      alert(`Error processing video: ${error.message || 'Failed to extract frame from video. Please try an image instead.'}`)
     }
-    reader.readAsDataURL(file)
   }
 
   // Camera functions
@@ -669,12 +722,64 @@ export default function AIStylePage() {
 
   const capturePhoto = async () => {
     if (!videoRef.current || !canvasRef.current) {
+      console.error('❌ Video or canvas ref is null')
       return
     }
+
+    if (isCapturing) {
+      console.log('⏳ Already capturing, please wait...')
+      return
+    }
+
+    setIsCapturing(true)
 
     try {
       const video = videoRef.current
       const canvas = canvasRef.current
+      
+      // Wait for video to be ready and playing
+      if (video.readyState < 2) { // HAVE_CURRENT_DATA
+        console.log('⏳ Waiting for video to be ready...')
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('Video took too long to load'))
+          }, 5000)
+          
+          const checkReady = () => {
+            if (video.readyState >= 2) {
+              clearTimeout(timeout)
+              video.removeEventListener('loadedmetadata', checkReady)
+              video.removeEventListener('canplay', checkReady)
+              resolve(null)
+            }
+          }
+          
+          video.addEventListener('loadedmetadata', checkReady)
+          video.addEventListener('canplay', checkReady)
+          
+          // Check immediately in case it's already ready
+          checkReady()
+        })
+      }
+
+      // Ensure video is playing
+      if (video.paused) {
+        console.log('▶️ Starting video playback...')
+        await video.play().catch((error) => {
+          console.error('Error playing video:', error)
+          throw new Error('Video failed to play. Please try again.')
+        })
+        // Small delay to ensure frame is stable
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
+
+      // Validate video has valid dimensions
+      if (!video.videoWidth || !video.videoHeight || video.videoWidth === 0 || video.videoHeight === 0) {
+        throw new Error('Video does not have valid dimensions. Please ensure camera is working properly.')
+      }
+
+      console.log(`📐 Video dimensions: ${video.videoWidth}x${video.videoHeight}`)
+
       const ctx = canvas.getContext('2d')
       
       if (!ctx) {
@@ -685,34 +790,45 @@ export default function AIStylePage() {
       canvas.width = video.videoWidth
       canvas.height = video.videoHeight
 
+      // Clear canvas first
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+
       // Flip the image back to normal (since video preview is mirrored)
+      ctx.save()
       ctx.translate(canvas.width, 0)
       ctx.scale(-1, 1)
       
       // Draw video frame to canvas (will be flipped back to normal)
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
       
-      // Reset transform
-      ctx.setTransform(1, 0, 0, 1, 0, 0)
+      // Restore transform
+      ctx.restore()
 
-      // Convert canvas to blob
-      canvas.toBlob(async (blob) => {
-        if (!blob) {
-          throw new Error('Failed to capture photo')
-        }
+      // Convert canvas to blob using Promise
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.95)
+      })
 
-        // Create a File object from the blob
-        const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' })
+      if (!blob) {
+        throw new Error('Failed to capture photo - blob is null')
+      }
 
-        // Stop camera
-        stopCamera()
+      console.log(`✅ Photo captured: ${(blob.size / 1024).toFixed(2)}KB`)
 
-        // Process the captured photo through the upload handler
-        await handleImageUpload(file)
-      }, 'image/jpeg', 0.95)
+      // Create a File object from the blob
+      const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' })
+
+      // Stop camera
+      stopCamera()
+
+      // Process the captured photo through the upload handler
+      await handleImageUpload(file)
     } catch (error: any) {
-      console.error('Error capturing photo:', error)
+      console.error('❌ Error capturing photo:', error)
       alert(`Error capturing photo: ${error.message || 'Failed to capture photo. Please try again.'}`)
+      // Don't stop camera if capture failed, so user can try again
+    } finally {
+      setIsCapturing(false)
     }
   }
 
@@ -1571,10 +1687,20 @@ export default function AIStylePage() {
                       </button>
                       <button
                         onClick={capturePhoto}
-                        className="btn-primary px-8 py-3 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-lg"
+                        disabled={isCapturing}
+                        className="btn-primary px-8 py-3 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <Camera className="w-5 h-5 mr-2" />
-                        Capture Photo
+                        {isCapturing ? (
+                          <>
+                            <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                            Capturing...
+                          </>
+                        ) : (
+                          <>
+                            <Camera className="w-5 h-5 mr-2" />
+                            Capture Photo
+                          </>
+                        )}
                       </button>
                     </div>
                     
