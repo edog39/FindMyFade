@@ -476,6 +476,7 @@ export default function AIStylePage() {
   const [isCapturing, setIsCapturing] = useState(false)
   const [retryAttempt, setRetryAttempt] = useState(0)
   const [maxRetries] = useState(3) // Maximum number of retry attempts
+  const [showImageQualityPopup, setShowImageQualityPopup] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -1226,13 +1227,33 @@ export default function AIStylePage() {
       console.error('❌ Error during AI analysis:', error)
       clearInterval(analysisInterval)
       setAnalysisProgress(0)
+      const finalRetryAttempt = retryAttempt
       setRetryAttempt(0) // Reset retry counter
       setStep('upload')
       
-      // Show error to user with retry info if applicable
+      // Check if error is related to image quality (after all retries)
       const errorMessage = error instanceof Error ? error.message : 'Failed to analyze face. Please ensure OpenAI API key is configured and try again.'
-      const retryInfo = retryAttempt > 0 ? ` (Tried ${retryAttempt + 1} times)` : ''
-      alert(`AI Analysis Error: ${errorMessage}${retryInfo}`)
+      const isImageQualityError = errorMessage.toLowerCase().includes('could not analyze') ||
+                                  errorMessage.toLowerCase().includes('unclear') ||
+                                  errorMessage.toLowerCase().includes('no face') ||
+                                  errorMessage.toLowerCase().includes('unable to') ||
+                                  errorMessage.toLowerCase().includes('image shows') ||
+                                  errorMessage.toLowerCase().includes('clear face') ||
+                                  (errorMessage.toLowerCase().includes('empty response') && finalRetryAttempt >= maxRetries - 1)
+      
+      // Show image quality popup if it's a quality issue after all retries (maxRetries-1 because attempts are 0-indexed)
+      const hasExhaustedRetries = finalRetryAttempt >= maxRetries - 1
+      
+      if (isImageQualityError && hasExhaustedRetries) {
+        // Clear uploaded images so user can start fresh
+        setUploadedImage(null)
+        setUploadedVideo(null)
+        setShowImageQualityPopup(true)
+      } else {
+        // Show regular error for other issues
+        const retryInfo = finalRetryAttempt > 0 ? ` (Tried ${finalRetryAttempt + 1} times)` : ''
+        alert(`AI Analysis Error: ${errorMessage}${retryInfo}`)
+      }
       return
     }
     
@@ -1817,6 +1838,59 @@ export default function AIStylePage() {
                     <p className="text-center text-primary-300 text-sm mt-4">
                       Position your face in the frame and tap Capture Photo
                     </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Image Quality Popup */}
+            {showImageQualityPopup && (
+              <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+                <div className="max-w-md w-full">
+                  <div className="card bg-primary-900">
+                    <div className="text-center py-6">
+                      <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Camera className="w-8 h-8 text-red-400" />
+                      </div>
+                      
+                      <h3 className="font-semibold text-white text-xl mb-3">
+                        Image Quality Issue
+                      </h3>
+                      
+                      <p className="text-primary-300 mb-6">
+                        Image wasn't high enough quality. The AI couldn't analyze your face clearly. Please try again with a clearer photo.
+                      </p>
+                      
+                      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                        <button
+                          onClick={() => {
+                            setShowImageQualityPopup(false)
+                            startCamera()
+                          }}
+                          className="btn-primary px-6 py-3 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700"
+                        >
+                          <Camera className="w-5 h-5 mr-2" />
+                          Take Another Photo
+                        </button>
+                        
+                        <button
+                          onClick={() => {
+                            setShowImageQualityPopup(false)
+                            setStep('upload')
+                          }}
+                          className="btn-secondary px-6 py-3"
+                        >
+                          Upload Different Photo
+                        </button>
+                      </div>
+                      
+                      <button
+                        onClick={() => setShowImageQualityPopup(false)}
+                        className="mt-4 text-primary-300 hover:text-white text-sm transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
