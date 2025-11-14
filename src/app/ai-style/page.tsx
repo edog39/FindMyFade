@@ -1233,24 +1233,31 @@ export default function AIStylePage() {
       
       // Check if error is related to image quality (after all retries)
       const errorMessage = error instanceof Error ? error.message : 'Failed to analyze face. Please ensure OpenAI API key is configured and try again.'
-      const isImageQualityError = errorMessage.toLowerCase().includes('could not analyze') ||
-                                  errorMessage.toLowerCase().includes('unclear') ||
-                                  errorMessage.toLowerCase().includes('no face') ||
-                                  errorMessage.toLowerCase().includes('unable to') ||
-                                  errorMessage.toLowerCase().includes('image shows') ||
-                                  errorMessage.toLowerCase().includes('clear face') ||
-                                  (errorMessage.toLowerCase().includes('empty response') && finalRetryAttempt >= maxRetries - 1)
+      const errorLower = errorMessage.toLowerCase()
+      
+      // Detect image quality errors - comprehensive list
+      const isImageQualityError = errorLower.includes('empty response') ||
+                                  errorLower.includes('could not analyze') ||
+                                  errorLower.includes('unclear') ||
+                                  errorLower.includes('no face') ||
+                                  errorLower.includes('unable to') ||
+                                  errorLower.includes('image shows') ||
+                                  errorLower.includes('clear face') ||
+                                  errorLower.includes('contains no faces') ||
+                                  errorLower.includes('unclear or contains')
       
       // Show image quality popup if it's a quality issue after all retries (maxRetries-1 because attempts are 0-indexed)
       const hasExhaustedRetries = finalRetryAttempt >= maxRetries - 1
       
-      if (isImageQualityError && hasExhaustedRetries) {
+      // Always show popup for image quality errors after retries, or if it's clearly an image quality issue
+      if (isImageQualityError && (hasExhaustedRetries || finalRetryAttempt > 0)) {
         // Clear uploaded images so user can start fresh
         setUploadedImage(null)
         setUploadedVideo(null)
         setShowImageQualityPopup(true)
+        return // Don't show alert, popup handles it
       } else {
-        // Show regular error for other issues
+        // Show regular error for other issues (network, API key, etc.)
         const retryInfo = finalRetryAttempt > 0 ? ` (Tried ${finalRetryAttempt + 1} times)` : ''
         alert(`AI Analysis Error: ${errorMessage}${retryInfo}`)
       }
@@ -1435,6 +1442,60 @@ export default function AIStylePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-950 via-primary-900 to-primary-800">
+      {/* Image Quality Popup - Top level so it can show from any step */}
+      {showImageQualityPopup && (
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+          <div className="max-w-md w-full">
+            <div className="card bg-primary-900">
+              <div className="text-center py-6">
+                <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Camera className="w-8 h-8 text-red-400" />
+                </div>
+                
+                <h3 className="font-semibold text-white text-xl mb-3">
+                  Image Quality Issue
+                </h3>
+                
+                <p className="text-primary-300 mb-6">
+                  Image wasn't high enough quality. The AI couldn't analyze your face clearly. Please try again with a clearer photo.
+                </p>
+                
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <button
+                    onClick={() => {
+                      setShowImageQualityPopup(false)
+                      setStep('upload')
+                      startCamera()
+                    }}
+                    className="btn-primary px-6 py-3 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700"
+                  >
+                    <Camera className="w-5 h-5 mr-2" />
+                    Take Another Photo
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setShowImageQualityPopup(false)
+                      setStep('upload')
+                    }}
+                    className="btn-secondary px-6 py-3"
+                  >
+                    Upload Different Photo
+                  </button>
+                </div>
+                
+                <button
+                  onClick={() => setShowImageQualityPopup(false)}
+                  className="mt-4 text-primary-300 hover:text-white text-sm transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-primary-900/80 backdrop-blur-lg border-b border-primary-800">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -1838,59 +1899,6 @@ export default function AIStylePage() {
                     <p className="text-center text-primary-300 text-sm mt-4">
                       Position your face in the frame and tap Capture Photo
                     </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Image Quality Popup */}
-            {showImageQualityPopup && (
-              <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-                <div className="max-w-md w-full">
-                  <div className="card bg-primary-900">
-                    <div className="text-center py-6">
-                      <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Camera className="w-8 h-8 text-red-400" />
-                      </div>
-                      
-                      <h3 className="font-semibold text-white text-xl mb-3">
-                        Image Quality Issue
-                      </h3>
-                      
-                      <p className="text-primary-300 mb-6">
-                        Image wasn't high enough quality. The AI couldn't analyze your face clearly. Please try again with a clearer photo.
-                      </p>
-                      
-                      <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                        <button
-                          onClick={() => {
-                            setShowImageQualityPopup(false)
-                            startCamera()
-                          }}
-                          className="btn-primary px-6 py-3 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700"
-                        >
-                          <Camera className="w-5 h-5 mr-2" />
-                          Take Another Photo
-                        </button>
-                        
-                        <button
-                          onClick={() => {
-                            setShowImageQualityPopup(false)
-                            setStep('upload')
-                          }}
-                          className="btn-secondary px-6 py-3"
-                        >
-                          Upload Different Photo
-                        </button>
-                      </div>
-                      
-                      <button
-                        onClick={() => setShowImageQualityPopup(false)}
-                        className="mt-4 text-primary-300 hover:text-white text-sm transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>
