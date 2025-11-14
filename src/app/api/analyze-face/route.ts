@@ -157,28 +157,11 @@ CRITICAL INSTRUCTIONS:
     const content = response.choices[0].message?.content
     console.log('🤖 Raw AI response received, length:', content?.length || 0)
     console.log('🤖 Raw AI response preview:', content?.substring(0, 200) || 'null')
-    console.log('🤖 Full response structure:', JSON.stringify({
-      hasChoices: !!response.choices,
-      choicesLength: response.choices?.length || 0,
-      hasMessage: !!response.choices?.[0]?.message,
-      hasContent: !!response.choices?.[0]?.message?.content,
-      contentType: typeof content,
-      contentIsEmpty: !content || content.trim().length === 0
-    }, null, 2))
     
     // Parse the JSON response
     try {
-      if (!content || content.trim().length === 0) {
-        console.error('❌ OpenAI returned empty or null content')
-        console.error('❌ Full response object:', JSON.stringify(response, null, 2))
-        return Response.json(
-          { 
-            error: 'Empty response',
-            message: 'OpenAI returned an empty response. This may happen if the image is unclear or contains no faces. Please try again with a clearer image.',
-            details: 'OpenAI API returned null or empty content in the response'
-          },
-          { status: 500 }
-        )
+      if (!content) {
+        throw new Error('OpenAI returned empty response')
       }
       
       // Check if OpenAI returned text instead of JSON
