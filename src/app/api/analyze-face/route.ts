@@ -71,15 +71,22 @@ export async function POST(req: Request) {
     
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
     
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      response_format: { type: "json_object" },
-      messages: [{
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: `You are a professional barber analyzing a client's face to recommend hairstyles.
+    // Add timeout wrapper for OpenAI API call (60 seconds)
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('OpenAI API request timed out after 60 seconds')), 60000)
+    })
+    
+    let response
+    try {
+      const apiCall = openai.chat.completions.create({
+        model: "gpt-4o",
+        response_format: { type: "json_object" },
+        messages: [{
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `You are a professional barber analyzing a client's face to recommend hairstyles.
 
 ANALYZE THE ACTUAL IMAGE and return a JSON object with YOUR ANALYSIS (not the example values).
 
@@ -106,19 +113,50 @@ CRITICAL INSTRUCTIONS:
 - The bracketed text [YOUR ANALYSIS] is a placeholder - replace with actual values
 - Return ONLY valid JSON, no explanations
 - If unclear, estimate but set lower confidence (50-70)`
+            },
+            {
+              type: "image_url",
+              image_url: { url: image }
+            }
+          ]
+        }],
+        max_tokens: 500,
+        temperature: 0.3 // Lower temperature for more consistent results
+      })
+      
+      response = await Promise.race([apiCall, timeoutPromise]) as any
+      console.log('✅ OpenAI API call completed successfully')
+    } catch (apiError: any) {
+      console.error('❌ OpenAI API call failed:', apiError)
+      if (apiError.message && apiError.message.includes('timed out')) {
+        return Response.json(
+          { 
+            error: 'Request timeout',
+            message: 'The AI analysis is taking too long. Please try again with a smaller or clearer image.',
+            details: 'OpenAI API request timed out after 60 seconds'
           },
-          {
-            type: "image_url",
-            image_url: { url: image }
-          }
-        ]
-      }],
-      max_tokens: 500,
-      temperature: 0.3 // Lower temperature for more consistent results
-    })
+          { status: 408 } // Request Timeout
+        )
+      }
+      // Re-throw to be caught by outer catch block
+      throw apiError
+    }
     
-    const content = response.choices[0].message.content
-    console.log('🤖 Raw AI response:', content)
+    if (!response || !response.choices || !response.choices[0]) {
+      console.error('❌ Invalid response structure from OpenAI:', response)
+      return Response.json(
+        { 
+          error: 'Invalid response',
+          message: 'OpenAI returned an invalid response. Please try again.',
+          details: 'Response structure is missing expected fields'
+        },
+        { status: 500 }
+      )
+    }
+    
+    const content = response.choices[0].message?.content
+    console.log('🤖 Raw AI response received, length:', content?.length || 0)
+    console.log('🤖 Raw AI response preview:', content?.substring(0, 200) || 'null')
     
     // Parse the JSON response
     try {

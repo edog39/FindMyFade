@@ -792,27 +792,61 @@ export default function AIStylePage() {
       
       console.log('🤖 Calling OpenAI Vision API for face analysis...')
       
-      // Call the real AI API
-      const response = await fetch('/api/analyze-face', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: imageToAnalyze })
-      })
+      // Call the real AI API with timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 60000) // 60 second timeout
+      
+      let response: Response
+      try {
+        response = await fetch('/api/analyze-face', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: imageToAnalyze }),
+          signal: controller.signal
+        })
+        clearTimeout(timeoutId)
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId)
+        if (fetchError.name === 'AbortError') {
+          throw new Error('Request timed out. The image may be too large or the server is taking too long. Please try again with a smaller image.')
+        }
+        throw new Error(`Network error: ${fetchError.message || 'Failed to connect to server. Please check your internet connection and try again.'}`)
+      }
       
       // Check if request was successful
       if (!response.ok) {
-        const errorData = await response.json()
+        let errorData: any
+        try {
+          errorData = await response.json()
+        } catch (parseError) {
+          // If we can't parse the error response, use status text
+          throw new Error(`Server error (${response.status}): ${response.statusText || 'Failed to analyze face'}`)
+        }
+        
         const errorMessage = errorData.details 
           ? `${errorData.message || 'Face analysis failed'}: ${errorData.details}`
           : (errorData.message || 'Face analysis failed')
         throw new Error(errorMessage)
       }
       
-      const { analysis, error } = await response.json()
+      // Parse successful response
+      let responseData: any
+      try {
+        responseData = await response.json()
+      } catch (parseError) {
+        throw new Error('Failed to parse server response. The server may be experiencing issues. Please try again.')
+      }
+      
+      const { analysis, error } = responseData
       
       // Check for error in response
       if (error) {
         throw new Error(error)
+      }
+      
+      // Validate analysis exists
+      if (!analysis) {
+        throw new Error('No analysis data received from server. Please try again.')
       }
       
       // Clear progress and set to complete
