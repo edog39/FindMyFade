@@ -102,6 +102,49 @@ model BarberProfile {
   totalReviews    Int      @default(0)
   totalClients    Int      @default(0)
   
+  // Onboarding Quiz Fields
+  // Basic Identity & Licensing
+  shopType        String?  // "shop-based", "independent", "dorm/apartment", "freelance"
+  licenseNumber   String?
+  licenseUpload   String?  // URL to uploaded license file
+  
+  // Specialties with Confidence Levels
+  specialtiesWithConfidence Json? // Array: [{ specialty: "Fades", type: "burst", confidence: "confident" }]
+  
+  // Vibe Profile
+  conversationStyle String? // "talkative", "neutral", "quiet"
+  vibeType         String? // "community", "chill", "professional", "energetic", "luxury"
+  comfortableTopics Json?  // Array: ["sports", "business", "politics", "entertainment", "mental-health", "none"]
+  preferredClientTypes Json? // Array: ["college-students", "professionals", "older-adults", "families", "all"]
+  
+  // Availability & Location
+  typicalHours    Json?    // Structured availability window
+  travelWilling   Boolean  @default(false)
+  campusGigs      Boolean  @default(false)
+  
+  // Pricing & Services
+  baseCutPrice    Float?
+  beardAddOnPrice Float?
+  packageDeals    Json?    // Array of packages with prices
+  studentDiscount Float?   // Percentage discount for students
+  
+  // Monetization & Incentives
+  agreeQuickResponse Boolean @default(false) // Agree to respond within X hours
+  quickResponseHours Int?    // Hours to respond (e.g., 2, 4, 24)
+  optInFeatured    Boolean  @default(false) // Opt-in for featured placement
+  featuredUntil    DateTime? // End date for featured placement
+  optInCampusLeads Boolean  @default(false) // Opt-in for campus campaign leads
+  optInPromotions  Boolean  @default(false) // Opt-in for paid promotions/ads
+  
+  // Onboarding Quiz Status
+  onboardingCompletion Float  @default(0.0) // 0.0 - 1.0 (percentage complete)
+  onboardingQuizData   Json?  // Store raw quiz responses for reference
+  isOnboardingComplete Boolean @default(false)
+  hasVerifiedVibe      Boolean @default(false) // "Verified Vibe" badge
+  
+  // Listing Status (enforcement)
+  isListed          Boolean  @default(false) // Only true if onboarding >= 70% complete
+  
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   

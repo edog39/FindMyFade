@@ -29,7 +29,8 @@ import {
   Phone,
   Mail,
   Instagram,
-  Globe
+  Globe,
+  Sparkles
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -62,6 +63,8 @@ export default function BarberDashboardPage() {
   const [barberAppointments, setBarberAppointments] = useState<any[]>([])
   const profileImageRef = useRef<HTMLInputElement>(null)
   const coverImageRef = useRef<HTMLInputElement>(null)
+  const [onboardingCompletion, setOnboardingCompletion] = useState<number | null>(null)
+  const [onboardingComplete, setOnboardingComplete] = useState<boolean>(false)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -147,6 +150,26 @@ export default function BarberDashboardPage() {
     }
 
     fetchAppointments()
+  }, [myUserId])
+
+  // Check onboarding completion status
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      if (!myUserId) return
+
+      try {
+        const response = await fetch(`/api/barbers/onboarding?userId=${myUserId}`)
+        if (response.ok) {
+          const data = await response.json()
+          setOnboardingCompletion(data.completion || 0)
+          setOnboardingComplete(data.isComplete || false)
+        }
+      } catch (error) {
+        console.error('❌ Error checking onboarding status:', error)
+      }
+    }
+
+    checkOnboarding()
   }, [myUserId])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -308,6 +331,74 @@ export default function BarberDashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Onboarding Prompt Banner */}
+      {onboardingCompletion !== null && onboardingCompletion < 0.7 && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+          <div className="bg-accent-500/10 border-2 border-accent-500/30 rounded-xl p-6 mb-6">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start space-x-4 flex-1">
+                <div className="w-12 h-12 bg-accent-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="text-accent-500" size={24} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-white text-lg mb-2">
+                    Complete Your Onboarding to Get Listed!
+                  </h3>
+                  <p className="text-primary-300 text-sm mb-4">
+                    You're <span className="font-semibold text-accent-400">{(onboardingCompletion * 100).toFixed(0)}%</span> complete. 
+                    Complete 70% to unlock featured placement, verified badge, and higher visibility.
+                  </p>
+                  <div className="flex items-center space-x-3">
+                    <Link
+                      href="/barber/onboarding"
+                      className="btn-primary flex items-center space-x-2"
+                    >
+                      <Sparkles size={16} />
+                      <span>Complete Onboarding</span>
+                    </Link>
+                    <button
+                      onClick={() => setOnboardingCompletion(null)}
+                      className="text-primary-400 hover:text-primary-300 text-sm"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+              </div>
+              {/* Progress Circle */}
+              <div className="relative w-16 h-16 flex-shrink-0">
+                <svg className="transform -rotate-90 w-16 h-16">
+                  <circle
+                    cx="32"
+                    cy="32"
+                    r="28"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                    className="text-primary-700"
+                  />
+                  <circle
+                    cx="32"
+                    cy="32"
+                    r="28"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                    strokeDasharray={`${onboardingCompletion * 175.93} 175.93`}
+                    className="text-accent-500 transition-all duration-300"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-xs font-bold text-white">
+                    {(onboardingCompletion * 100).toFixed(0)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Overview */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

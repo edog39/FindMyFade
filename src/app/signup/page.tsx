@@ -181,7 +181,8 @@ export default function SignUpPage() {
       // Redirect based on user type
       setTimeout(() => {
         if (userType === 'barber') {
-          router.push('/barber-dashboard')
+          // Redirect new barbers to onboarding quiz
+          router.push('/barber/onboarding')
         } else {
           router.push('/')
         }
